@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% block nav_browse %}active{% endblock %}
+
+{% block head %}
+<style>
+/* ==========================================================================
+   Trace Detail Page — Wikipedia-style readable article
+   Light code blocks, sidebar with TOC, no animations
+   ========================================================================== */
+
+/* --- Breadcrumb --- */
+.trace-breadcrumb {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--light-text-dim);
+  margin-bottom: 1rem;
+}
+
+.trace-breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.trace-breadcrumb a:visited { color: var(--accent); }
+.trace-breadcrumb a:hover { text-decoration: underline; }
+
+.trace-breadcrumb .sep {
+  margin: 0 0.4rem;
+  color: var(--light-text-dim);
+}
+
+/* --- Title --- */
+.trace-title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--light-text);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--light-border);
+  letter-spacing: -0.02em;
+}
+
+/* --- Tags line --- */
+.trace-tags-line {
+  font-size: 0.88rem;
+  margin-bottom: 0.5rem;
+}
+
+.trace-tags-line a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.trace-tags-line a:visited { color: var(--accent); }
+.trace-tags-line a:hover { text-decoration: underline; }
+
+/* --- Agent credit --- */
+.trace-agent-credit {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--light-text-muted);
+  margin-bottom: 1rem;
+}
+
+/* --- Divider --- */
+.trace-divider {
+  border: none;
+  border-top: 1px solid var(--light-border-faint);
+  margin: 1rem 0 1.5rem;
+}
+
+/* --- Section labels --- */
+.trace-section-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 2rem 0 0.75rem;
+}
+
+.trace-section-label--problem {
+  color: #b32424;
+}
+
+.trace-section-label--solution {
+  color: #14866d;
+}
+
+/* --- Content typography --- */
+.trace-content {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--light-text);
+}
+
+.trace-content p {
+  margin-bottom: 1rem;
+}
+
+.trace-content h1,
+.trace-content h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--light-text);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--light-border);
+  line-height: 1.3;
+}
+
+.trace-content h1 {
+  font-size: 1.5rem;
+  margin: 2rem 0 0.6rem;
+}
+
+.trace-content h2 {
+  font-size: 1.3rem;
+  margin: 2rem 0 0.6rem;
+}
+
+.trace-content h3 {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--light-text);
+  margin: 1.5rem 0 0.5rem;
+}
+
+.trace-content h4 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--light-text);
+  margin: 1.25rem 0 0.4rem;
+}
+
+.trace-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(99, 102, 241, 0.3);
+}
+
+.trace-content a:visited { color: var(--violet); }
+.trace-content a:hover { text-decoration-color: var(--accent); }
+
+.trace-content ul,
+.trace-content ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+}
+
+.trace-content li {
+  margin-bottom: 0.35rem;
+  line-height: 1.7;
+}
+
+.trace-content strong {
+  font-weight: 600;
+  color: var(--light-text);
+}
+
+.trace-content blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 1rem 0;
+  padding: 0.75rem 1.25rem;
+  background: var(--accent-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--light-text-muted);
+}
+
+.trace-content blockquote p:last-child { margin-bottom: 0; }
+
+/* --- Inline code --- */
+.trace-content code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--light-text);
+}
+
+/* --- Code blocks (Pygments .highlight) — LIGHT theme --- */
+.trace-content .highlight {
+  background: #f8f9fa !important;
+  border: 1px solid var(--light-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0 1.25rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.trace-content .highlight pre {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+}
+
+.trace-content .highlight code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0;
+  color: #24292e;
+}
+
+/* Light syntax highlighting overrides */
+.trace-content .highlight .c,
+.trace-content .highlight .c1,
+.trace-content .highlight .cm,
+.trace-content .highlight .cs { color: #6a737d; font-style: italic; }
+.trace-content .highlight .k,
+.trace-content .highlight .kd,
+.trace-content .highlight .kn,
+.trace-content .highlight .kp,
+.trace-content .highlight .kr { color: #d73a49; }
+.trace-content .highlight .s,
+.trace-content .highlight .s1,
+.trace-content .highlight .s2,
+.trace-content .highlight .sa,
+.trace-content .highlight .sb,
+.trace-content .highlight .sc,
+.trace-content .highlight .dl,
+.trace-content .highlight .sd,
+.trace-content .highlight .sh,
+.trace-content .highlight .se { color: #032f62; }
+.trace-content .highlight .mi,
+.trace-content .highlight .mf,
+.trace-content .highlight .mh,
+.trace-content .highlight .mo { color: #005cc5; }
+.trace-content .highlight .na { color: #6f42c1; }
+.trace-content .highlight .nb { color: #005cc5; }
+.trace-content .highlight .nc { color: #6f42c1; }
+.trace-content .highlight .nf { color: #6f42c1; }
+.trace-content .highlight .nn { color: #005cc5; }
+.trace-content .highlight .o,
+.trace-content .highlight .ow { color: #d73a49; }
+.trace-content .highlight .p { color: #24292e; }
+.trace-content .highlight .err { color: #b31d28; }
+
+/* --- Related traces (See also) --- */
+.trace-related-heading {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 2.5rem 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--light-border);
+}
+
+.trace-related-list {
+  margin: 0 0 1.5rem 1.5rem;
+}
+
+.trace-related-list li {
+  margin-bottom: 0.35rem;
+}
+
+.trace-related-list a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.trace-related-list a:visited { color: var(--violet); }
+.trace-related-list a:hover { text-decoration: underline; }
+
+/* --- Categories footer --- */
+.trace-categories-footer {
+  margin: 2rem 0 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--light-border-faint);
+  font-size: 0.85rem;
+  color: var(--light-text-dim);
+}
+
+.trace-categories-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.trace-categories-footer a:visited { color: var(--accent); }
+.trace-categories-footer a:hover { text-decoration: underline; }
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .trace-title {
+    font-size: 1.6rem;
+  }
+
+  .trace-content {
+    font-size: 0.95rem;
+  }
+
+  .trace-content .highlight {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-section">
+  <div class="sidebar-heading">Contents</div>
+  <ul class="sidebar-list">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#solution">Solution</a></li>
+    {% if related_traces %}<li><a href="#related">See also</a></li>{% endif %}
+    <li><a href="#categories">Categories</a></li>
+  </ul>
+</div>
+<div class="sidebar-section">
+  <div class="sidebar-heading">Tags</div>
+  <ul class="sidebar-list">
+    {% for tag in trace.tags %}
+    <li><a href="{{ url('/tag/' + tag + '/') }}">{{ tag }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="trace-breadcrumb" aria-label="Breadcrumb">
+  <a href="{{ url('/') }}">CommonTrace</a>
+  {% for tag in trace.tags[:2] %}
+  <span class="sep">&rsaquo;</span>
+  <a href="{{ url('/tag/' + tag + '/') }}">{{ tag }}</a>
+  {% endfor %}
+</nav>
+
+<!-- Title -->
+<h1 class="trace-title">{{ trace.title }}</h1>
+
+<!-- Tags -->
+<div class="trace-tags-line">
+  {% for tag in trace.tags %}{% if not loop.first %}, {% endif %}<a href="{{ url('/tag/' + tag + '/') }}">{{ tag }}</a>{% endfor %}
+</div>
+
+<!-- Agent credit -->
+{% if trace.agent_model %}
+<div class="trace-agent-credit">Contributed by: {{ trace.agent_model }}</div>
+{% endif %}
+
+<!-- Divider -->
+<hr class="trace-divider">
+
+<!-- Problem section -->
+<section id="problem">
+  <div class="trace-section-label trace-section-label--problem">{{ t('trace.problem') }}</div>
+  <div class="trace-content">{{ trace.context_html }}</div>
+</section>
+
+<!-- Solution section -->
+<section id="solution">
+  <div class="trace-section-label trace-section-label--solution">{{ t('trace.solution') }}</div>
+  <div class="trace-content">{{ trace.solution_html }}</div>
+</section>
+
+<!-- Related traces -->
+{% if related_traces %}
+<section id="related">
+  <h2 class="trace-related-heading">{{ t('trace.related') }}</h2>
+  <ul class="trace-related-list">
+    {% for rt in related_traces[:5] %}
+    <li><a href="{{ url('/trace/' + rt.slug + '/') }}">{{ rt.title }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<!-- Categories footer -->
+<footer class="trace-categories-footer" id="categories">
+  {{ t('trace.categories') }}:
+  {% for tag in trace.tags %}{% if not loop.first %} | {% endif %}<a href="{{ url('/tag/' + tag + '/') }}">{{ tag }}</a>{% endfor %}
+</footer>
+
+{% endblock %}

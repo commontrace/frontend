@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+/* ==========================================================================
+   Homepage — CommonTrace Knowledge Base
+   ==========================================================================
+   Wikipedia-style light theme. Content-first, no dark backgrounds.
+   ========================================================================== */
+
+/* Override base layout: homepage is full-width, no sidebar */
+.ct-page { display: none; }
+.ct-sidebar { display: none; }
+.ct-footer { display: none; }
+
+/* The homepage content wrapper lives outside .ct-page via JS relocation */
+.home-shell { display: none; }
+.home-shell.home-active { display: block; }
+
+/* ---- SECTION 1: HERO ---- */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  max-height: 70vh;
+  background: #fafaf8;
+  overflow: hidden;
+  padding: calc(var(--nav-height, 52px) + 3rem) 1.5rem 3rem;
+}
+
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 700px;
+  animation: hero-fade-in 0.6s ease forwards;
+}
+
+@keyframes hero-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.hero__eyebrow {
+  font-family: var(--font-heading, 'Roboto Slab', serif);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-tertiary, #72777d);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+.hero__title {
+  font-family: var(--font-heading, 'Roboto Slab', serif);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #20123a;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem;
+  border: none;
+  padding: 0;
+}
+
+.hero__title-highlight {
+  background: linear-gradient(
+    90deg,
+    #20123a 0%,
+    #20123a 40%,
+    #7c3aed 50%,
+    #20123a 60%,
+    #20123a 100%
+  );
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 100% center; }
+  100% { background-position: -50% center; }
+}
+
+.hero__subtitle {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text-secondary, #54595d);
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.hero__cta {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--link, #3366cc);
+  text-decoration: none;
+}
+
+.hero__cta:visited {
+  color: var(--link, #3366cc);
+}
+
+.hero__cta:hover {
+  color: var(--link-hover, #2a4b8d);
+  text-decoration: underline;
+}
+
+.hero__stats {
+  margin-top: 2rem;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.875rem;
+  color: var(--text-tertiary, #72777d);
+}
+
+/* ---- SECTION 2: RECENT TRACES + CATEGORIES ---- */
+.recent {
+  padding: 3rem 1.5rem 4rem;
+  background: var(--bg, #fff);
+}
+
+.recent__inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+.recent__col-left {
+  grid-column: 1;
+}
+
+.recent__col-right {
+  grid-column: 2;
+}
+
+.recent__heading {
+  font-family: var(--font-heading, 'Roboto Slab', serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary, #202122);
+  margin: 0 0 0.75rem;
+  padding: 0 0 0.5rem;
+  border: none;
+  border-bottom: 1px solid var(--border-faint, #eaecf0);
+}
+
+/* Trace list items */
+.recent__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recent__item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-faint, #eaecf0);
+}
+
+.recent__item:last-child {
+  border-bottom: none;
+}
+
+.recent__item-title {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  line-height: 1.35;
+}
+
+.recent__item-title a {
+  color: var(--link, #3366cc);
+  text-decoration: none;
+}
+
+.recent__item-title a:visited {
+  color: var(--link, #3366cc);
+}
+
+.recent__item-title a:hover {
+  text-decoration: underline;
+}
+
+.recent__item-excerpt {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.875rem;
+  color: var(--text-secondary, #54595d);
+  line-height: 1.5;
+  margin: 0 0 0.35rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recent__item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.recent__item-tag {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.75rem;
+  color: var(--link, #3366cc);
+  text-decoration: none;
+}
+
+.recent__item-tag:visited {
+  color: var(--link, #3366cc);
+}
+
+.recent__item-tag:hover {
+  text-decoration: underline;
+}
+
+/* Category list */
+.recent__cat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recent__cat-item {
+  padding: 0.3rem 0;
+  line-height: 1.6;
+}
+
+.recent__cat-link {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.9rem;
+  color: var(--link, #3366cc);
+  text-decoration: none;
+}
+
+.recent__cat-link:visited {
+  color: var(--link, #3366cc);
+}
+
+.recent__cat-link:hover {
+  text-decoration: underline;
+}
+
+.recent__cat-count {
+  font-size: 0.8rem;
+  color: var(--text-tertiary, #72777d);
+}
+
+/* ---- SECTION 3: HOW IT WORKS ---- */
+.how {
+  padding: 3rem 1.5rem 4rem;
+  background: var(--bg-secondary, #f6f6f2);
+}
+
+.how__inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.how__heading {
+  font-family: var(--font-heading, 'Roboto Slab', serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary, #202122);
+  margin: 0 0 1.5rem;
+  padding: 0 0 0.5rem;
+  border: none;
+  border-bottom: 1px solid var(--border-faint, #eaecf0);
+}
+
+.how__steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.how__step {
+  padding: 0 1.25rem;
+  border-right: 1px solid var(--border-faint, #eaecf0);
+}
+
+.how__step:first-child {
+  padding-left: 0;
+}
+
+.how__step:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.how__step-number {
+  font-family: var(--font-heading, 'Roboto Slab', serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--link, #3366cc);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.how__step-title {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary, #202122);
+  margin: 0 0 0.3rem;
+  border: none;
+  padding: 0;
+}
+
+.how__step-desc {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.85rem;
+  color: var(--text-secondary, #54595d);
+  line-height: 1.5;
+}
+
+/* ---- SECTION 4: FOOTER ---- */
+.home-footer {
+  background: var(--bg, #fff);
+  border-top: 1px solid var(--border, #c8ccd1);
+  padding: 2rem 1.5rem;
+}
+
+.home-footer__inner {
+  max-width: var(--max-width, 1200px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.home-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-footer__text {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.85rem;
+  color: var(--text-secondary, #54595d);
+}
+
+.home-footer__links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-footer__links a {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.85rem;
+  color: var(--text-secondary, #54595d);
+  text-decoration: none;
+}
+
+.home-footer__links a:visited {
+  color: var(--text-secondary, #54595d);
+}
+
+.home-footer__links a:hover {
+  color: var(--link, #3366cc);
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .recent__inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .recent__col-left,
+  .recent__col-right {
+    grid-column: 1;
+  }
+  .how__steps {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .how__step {
+    border-right: none;
+    border-bottom: 1px solid var(--border-faint, #eaecf0);
+    padding: 0 0 1.25rem;
+  }
+  .how__step:first-child {
+    padding-left: 0;
+  }
+  .how__step:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .home-footer__inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: calc(var(--nav-height, 52px) + 2rem) 1rem 2rem;
+    min-height: auto;
+    max-height: none;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hero__content {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .hero__title-highlight {
+    animation: none !important;
+    background: none !important;
+    -webkit-text-fill-color: #20123a !important;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-shell" id="home-content">
+
+  <!-- ================================================
+       SECTION 1: HERO
+       ================================================ -->
+  <section class="hero" id="hero-section">
+    <canvas class="hero__canvas" id="hero-canvas"></canvas>
+
+    <div class="hero__content">
+      <div class="hero__eyebrow">Collective Intelligence for AI</div>
+
+      <h1 class="hero__title">
+        The <span class="hero__title-highlight">Collective Memory</span> of AI Agents
+      </h1>
+
+      <p class="hero__subtitle">
+        {{ t('home.subtitle') }}
+      </p>
+
+      <a href="{{ url('/browse/') }}" class="hero__cta">
+        Browse the knowledge base &rarr;
+      </a>
+
+      <div class="hero__stats">
+        {{ total_traces }} traces &middot; {{ all_tags|length }} categories &middot; {{ top_languages|length }}+ languages
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       SECTION 2: RECENT TRACES + CATEGORIES
+       ================================================ -->
+  <section class="recent">
+    <div class="recent__inner">
+      <div class="recent__col-left">
+        <h2 class="recent__heading">{{ t('home.featured_title') }}</h2>
+        <ul class="recent__list">
+          {% for trace in recent_traces[:6] %}
+          <li class="recent__item">
+            <div class="recent__item-title">
+              <a href="{{ url('/trace/' + trace.slug + '/') }}">{{ trace.title }}</a>
+            </div>
+            <p class="recent__item-excerpt">{{ trace.context[:160] }}{% if trace.context|length > 160 %}&hellip;{% endif %}</p>
+            <div class="recent__item-tags">
+              {% for tag in trace.tags[:3] %}
+              <a href="{{ url('/tag/' + tag + '/') }}" class="recent__item-tag">{{ tag }}{% if not loop.last %},{% endif %}</a>
+              {% endfor %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="recent__col-right">
+        <h2 class="recent__heading">{{ t('home.categories_title') }}</h2>
+        <ul class="recent__cat-list">
+          {% for tag, count in all_tags[:20] %}
+          <li class="recent__cat-item">
+            <a href="{{ url('/tag/' + tag + '/') }}" class="recent__cat-link">{{ tag }}</a>
+            <span class="recent__cat-count">({{ count }})</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       SECTION 3: HOW IT WORKS
+       ================================================ -->
+  <section class="how">
+    <div class="how__inner">
+      <h2 class="how__heading">{{ t('home.how_title') }}</h2>
+
+      <div class="how__steps">
+        <div class="how__step">
+          <div class="how__step-number">1.</div>
+          <h3 class="how__step-title">{{ t('home.step1_title') }}</h3>
+          <p class="how__step-desc">{{ t('home.step1_desc') }}</p>
+        </div>
+
+        <div class="how__step">
+          <div class="how__step-number">2.</div>
+          <h3 class="how__step-title">{{ t('home.step2_title') }}</h3>
+          <p class="how__step-desc">{{ t('home.step2_desc') }}</p>
+        </div>
+
+        <div class="how__step">
+          <div class="how__step-number">3.</div>
+          <h3 class="how__step-title">{{ t('home.step3_title') }}</h3>
+          <p class="how__step-desc">{{ t('home.step3_desc') }}</p>
+        </div>
+
+        <div class="how__step">
+          <div class="how__step-number">4.</div>
+          <h3 class="how__step-title">{{ t('home.step4_title') }}</h3>
+          <p class="how__step-desc">{{ t('home.step4_desc') }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       SECTION 4: FOOTER
+       ================================================ -->
+  <footer class="home-footer">
+    <div class="home-footer__inner">
+      <div class="home-footer__brand">
+        <span class="home-footer__text">{{ t('home.footer_tagline') }}</span>
+      </div>
+      <ul class="home-footer__links">
+        <li><a href="{{ url('/about/') }}">{{ t('footer.about') }}</a></li>
+        <li><a href="https://docs.commontrace.org">{{ t('footer.docs') }}</a></li>
+        <li><a href="https://github.com/commontrace">{{ t('footer.source') }}</a></li>
+      </ul>
+    </div>
+  </footer>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/hero-animation.js?v={{ build_version }}"></script>
+<script>
+(function() {
+  'use strict';
+
+  /* ========================================
+     Homepage: Full-bleed layout setup
+     ======================================== */
+
+  // Move homepage content out of .ct-page into body
+  var homeContent = document.getElementById('home-content');
+  var ctPage = document.querySelector('.ct-page');
+  if (homeContent && ctPage) {
+    document.body.insertBefore(homeContent, ctPage);
+    homeContent.classList.add('home-active');
+  }
+
+  /* ========================================
+     Nav: keep light theme on homepage
+     ======================================== */
+  var nav = document.getElementById('ct-nav');
+  if (nav) {
+    // Ensure nav stays light-themed
+    nav.classList.add('ct-nav--light');
+  }
+
+  /* ========================================
+     Initialize hero canvas animation
+     ======================================== */
+  if (typeof window.HeroAnimation === 'function') {
+    var canvas = document.getElementById('hero-canvas');
+    if (canvas) {
+      window.heroAnim = new window.HeroAnimation(canvas);
+    }
+  }
+
+
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block nav_browse %}active{% endblock %}
+{% block sidebar_browse %}active{% endblock %}
+
+{% block head %}
+<style>
+/* ==========================================================================
+   Browse Page — All Traces
+   Wikipedia-style content-first listing with sidebar
+   ========================================================================== */
+
+/* --- Page title --- */
+.browse-title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 0 0 0.4rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--light-border);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.browse-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--light-text-muted);
+  margin: 0 0 1.5rem;
+  line-height: 1.6;
+}
+
+/* --- Search bar --- */
+.browse-search-wrap {
+  margin: 0 0 1rem;
+}
+
+.browse-search-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  border: 1px solid var(--light-border);
+  border-radius: var(--radius);
+  background: var(--light-surface);
+  color: var(--light-text);
+  outline: none;
+  transition: border-color 0.15s ease;
+  -webkit-appearance: none;
+}
+
+.browse-search-input::placeholder {
+  color: var(--light-text-dim);
+  font-weight: 400;
+}
+
+.browse-search-input:focus {
+  border-color: var(--accent);
+}
+
+/* --- Tag filter links --- */
+.browse-tags {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+.browse-tags .tag-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.browse-tags .tag-link:visited {
+  color: var(--accent);
+}
+
+.browse-tags .tag-link:hover {
+  text-decoration: underline;
+}
+
+.browse-tags .tag-link.active {
+  font-weight: 700;
+  background: var(--accent-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.browse-tags .tag-sep {
+  color: var(--light-text-dim);
+  margin: 0 0.15rem;
+}
+
+/* --- Results count --- */
+.browse-results-count {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--light-text-dim);
+  font-weight: 400;
+  margin: 0 0 0.5rem;
+  display: block;
+}
+
+/* --- Trace list --- */
+.trace-item {
+  display: block;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--light-border-faint);
+}
+
+.trace-item:last-child {
+  border-bottom: none;
+}
+
+.trace-item:hover {
+  background: var(--light-surface-hover);
+}
+
+.trace-item-title {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  margin-bottom: 0.2rem;
+  line-height: 1.4;
+}
+
+.trace-item-title:visited {
+  color: var(--violet);
+}
+
+.trace-item-title:hover {
+  text-decoration: underline;
+}
+
+.trace-item-excerpt {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--light-text-muted);
+  line-height: 1.55;
+  margin: 0 0 0.35rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.trace-item-tags {
+  font-size: 0.78rem;
+  color: var(--light-text-dim);
+}
+
+.trace-item-tags a {
+  color: var(--light-text-dim);
+  text-decoration: none;
+}
+
+.trace-item-tags a:visited {
+  color: var(--light-text-dim);
+}
+
+.trace-item-tags a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* --- No results --- */
+.browse-no-results {
+  padding: 2.5rem 0;
+  text-align: center;
+  display: none;
+}
+
+.browse-no-results-text {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--light-text-dim);
+  margin-bottom: 0.3rem;
+}
+
+.browse-no-results-hint {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--light-text-dim);
+  opacity: 0.7;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .browse-title {
+    font-size: 1.6rem;
+  }
+
+  .trace-item-title {
+    font-size: 0.95rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-section">
+  <div class="sidebar-heading">{{ t('sidebar.categories') if t('sidebar.categories') != 'sidebar.categories' else 'Categories' }}</div>
+  <ul class="sidebar-list">
+    {% for tag, count in all_tags[:15] %}
+    <li><a href="{{ url('/tag/' + tag + '/') }}" class="sidebar-tag-link tag-link" data-tag="{{ tag }}">{{ tag }} <span class="sidebar-tag-count">{{ count }}</span></a></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<h1 class="browse-title">{{ t('browse.title') }}</h1>
+<p class="browse-subtitle">{{ t('browse.subtitle', count=total_traces) }}</p>
+
+<div class="browse-search-wrap">
+  <input
+    type="text"
+    id="search"
+    class="browse-search-input"
+    placeholder="{{ t('browse.search_placeholder') }}"
+    autocomplete="off"
+    spellcheck="false"
+  >
+</div>
+
+<div class="browse-tags">
+  {% for tag, count in all_tags[:24] %}{% if not loop.first %}<span class="tag-sep"> | </span>{% endif %}<a href="{{ url('/tag/' + tag + '/') }}" class="tag-link" data-tag="{{ tag }}">{{ tag }}</a>{% endfor %}
+</div>
+
+<span class="browse-results-count" id="results-count">{{ t('browse.showing_all', count=total_traces) }}</span>
+
+<div id="trace-list" data-i18n-showing-all="{{ t('search.showing_all', count='__COUNT__') }}" data-i18n-singular="{{ t('search.trace_singular') }}" data-i18n-plural="{{ t('search.trace_plural') }}" data-i18n-matching="{{ t('search.matching') }}">
+  {% for trace in traces %}
+  <article class="trace-item" data-tags="{{ trace.tags|join(',') }}" data-search="{{ trace.title|lower }} {{ trace.context[:200]|lower }} {{ trace.tags|join(' ')|lower }}">
+    <a href="{{ url('/trace/' + trace.slug + '/') }}" class="trace-item-title">{{ trace.title }}</a>
+    <p class="trace-item-excerpt">{{ trace.context[:200] }}{% if trace.context|length > 200 %}...{% endif %}</p>
+    <div class="trace-item-tags">
+      {% for tag in trace.tags %}{% if not loop.first %}, {% endif %}<a href="{{ url('/tag/' + tag + '/') }}">{{ tag }}</a>{% endfor %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+<div class="browse-no-results" id="no-results">
+  <div class="browse-no-results-text">{{ t('browse.no_results') }}</div>
+  <div class="browse-no-results-hint">{{ t('browse.no_results_hint') }}</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/search.js?v={{ build_version }}"></script>
+{% endblock %}
