@@ -6,6 +6,7 @@
     "nav.browse": "Browse",
     "nav.about": "About",
     "nav.docs": "Docs",
+    "nav.sponsors": "Sponsors",
     "nav.traces_count": "{count} traces",
 
     "sidebar.navigation": "Navigation",
@@ -131,6 +132,7 @@
     "nav.browse": "Explorer",
     "nav.about": "À propos",
     "nav.docs": "Documentation",
+    "nav.sponsors": "Sponsors",
     "nav.traces_count": "{count} traces",
 
     "sidebar.navigation": "Navigation",
@@ -256,6 +258,7 @@
     "nav.browse": "浏览",
     "nav.about": "关于",
     "nav.docs": "文档",
+    "nav.sponsors": "赞助商",
     "nav.traces_count": "{count} 条 trace",
 
     "sidebar.navigation": "导航",
@@ -381,6 +384,7 @@
     "nav.browse": "Explorar",
     "nav.about": "Acerca de",
     "nav.docs": "Documentación",
+    "nav.sponsors": "Patrocinadores",
     "nav.traces_count": "{count} traces",
 
     "sidebar.navigation": "Navegación",
@@ -506,6 +510,7 @@
     "nav.browse": "Explorar",
     "nav.about": "Sobre",
     "nav.docs": "Documentação",
+    "nav.sponsors": "Patrocinadores",
     "nav.traces_count": "{count} traces",
 
     "sidebar.navigation": "Navegação",
@@ -631,6 +636,7 @@
     "nav.browse": "Durchsuchen",
     "nav.about": "Über uns",
     "nav.docs": "Dokumentation",
+    "nav.sponsors": "Sponsoren",
     "nav.traces_count": "{count} Traces",
 
     "sidebar.navigation": "Navigation",
@@ -756,6 +762,7 @@
     "nav.browse": "閲覧",
     "nav.about": "概要",
     "nav.docs": "ドキュメント",
+    "nav.sponsors": "スポンサー",
     "nav.traces_count": "{count} 件のトレース",
 
     "sidebar.navigation": "ナビゲーション",

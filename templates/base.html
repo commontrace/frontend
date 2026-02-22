@@ -738,7 +738,7 @@ li { margin-bottom: 0.25rem; }
           <li><a href="{{ url('/') }}">{{ t('sidebar.main_page') }}</a></li>
           <li><a href="{{ url('/browse/') }}" class="{% block sidebar_browse %}{% endblock %}">{{ t('sidebar.all_traces') }}</a></li>
           <li><a href="{{ url('/about/') }}">{{ t('sidebar.about') }}</a></li>
-          <li><a href="https://docs.commontrace.org" target="_blank" rel="noopener">{{ t('sidebar.documentation') }}</a></li>
+          <li><a href="{{ url('/sponsors/') }}">{{ t('nav.sponsors') }}</a></li>
           <li><a href="https://github.com/commontrace" target="_blank" rel="noopener">{{ t('sidebar.source_code') }}</a></li>
         </ul>
       </div>
@@ -756,7 +756,7 @@ li { margin-bottom: 0.25rem; }
       <span class="ct-footer__text">{{ t('footer.tagline') }}</span>
       <ul class="ct-footer__links">
         <li><a href="{{ url('/about/') }}">{{ t('footer.about') }}</a></li>
-        <li><a href="https://docs.commontrace.org">{{ t('footer.docs') }}</a></li>
+        <li><a href="{{ url('/sponsors/') }}">{{ t('nav.sponsors') }}</a></li>
         <li><a href="https://github.com/commontrace">{{ t('footer.source') }}</a></li>
       </ul>
     </div>
