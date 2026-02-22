@@ -1,5 +1,2 @@
 [build]
 dockerfilePath = "Dockerfile"
-
-[deploy]
-startCommand = "nginx -g 'daemon off;'"
