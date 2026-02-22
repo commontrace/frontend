@@ -183,7 +183,7 @@ def build():
             home_tpl.render(
                 recent_traces=traces[:10],
                 top_languages=top_languages,
-                page_title=f"CommonTrace — {t('nav.subtitle')}",
+                page_title=f"CommonTrace - {t('nav.subtitle')}",
             )
         )
 
@@ -194,7 +194,7 @@ def build():
         (browse_dir / "index.html").write_text(
             browse_tpl.render(
                 traces=traces,
-                page_title=f"{t('browse.title')} — CommonTrace",
+                page_title=f"{t('browse.title')} - CommonTrace",
             )
         )
 
@@ -208,7 +208,7 @@ def build():
                 trace_tpl.render(
                     trace=trace,
                     related_traces=related,
-                    page_title=f"{trace['title']} — CommonTrace",
+                    page_title=f"{trace['title']} - CommonTrace",
                 )
             )
 
@@ -221,7 +221,7 @@ def build():
                 tag_tpl.render(
                     tag=tag,
                     traces=tag_traces,
-                    page_title=f"{tag} — CommonTrace",
+                    page_title=f"{tag} - CommonTrace",
                 )
             )
 
@@ -230,7 +230,7 @@ def build():
         about_dir = lang_out / "about"
         about_dir.mkdir(parents=True, exist_ok=True)
         (about_dir / "index.html").write_text(
-            about_tpl.render(page_title=f"{t('about.title')} — CommonTrace")
+            about_tpl.render(page_title=f"{t('about.title')} - CommonTrace")
         )
 
         # Generate sponsors page
@@ -238,10 +238,18 @@ def build():
         sponsors_dir = lang_out / "sponsors"
         sponsors_dir.mkdir(parents=True, exist_ok=True)
         (sponsors_dir / "index.html").write_text(
-            sponsors_tpl.render(page_title=f"{t('sponsors.title')} — CommonTrace")
+            sponsors_tpl.render(page_title=f"{t('sponsors.title')} - CommonTrace")
         )
 
-        print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors")
+        # Generate docs page
+        docs_tpl = env.get_template("docs.html")
+        docs_dir = lang_out / "docs"
+        docs_dir.mkdir(parents=True, exist_ok=True)
+        (docs_dir / "index.html").write_text(
+            docs_tpl.render(page_title="Documentation - CommonTrace")
+        )
+
+        print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors, docs")
 
     print(f"Build complete: {OUT_DIR}/")
 
