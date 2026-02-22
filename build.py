@@ -233,7 +233,15 @@ def build():
             about_tpl.render(page_title=f"{t('about.title')} — CommonTrace")
         )
 
-        print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about")
+        # Generate sponsors page
+        sponsors_tpl = env.get_template("sponsors.html")
+        sponsors_dir = lang_out / "sponsors"
+        sponsors_dir.mkdir(parents=True, exist_ok=True)
+        (sponsors_dir / "index.html").write_text(
+            sponsors_tpl.render(page_title=f"{t('sponsors.title')} — CommonTrace")
+        )
+
+        print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors")
 
     print(f"Build complete: {OUT_DIR}/")
 
