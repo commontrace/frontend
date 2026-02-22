@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
   <script>
   (function() {
@@ -393,6 +393,16 @@ li { margin-bottom: 0.25rem; }
   height: 30px;
   width: auto;
   border-radius: 4px;
+}
+
+.ct-nav__logo-img--dark { display: none; }
+
+[data-theme="dark"] .ct-nav__logo-img--light { display: none; }
+[data-theme="dark"] .ct-nav__logo-img--dark { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .ct-nav__logo-img--light { display: none; }
+  html:not([data-theme="light"]) .ct-nav__logo-img--dark { display: block; }
 }
 
 .ct-nav__logo-text {
@@ -930,7 +940,8 @@ html:not([data-theme="dark"]) .ct-nav__theme-toggle .icon-moon { display: block;
   <nav class="ct-nav" id="ct-nav">
     <div class="ct-nav__inner">
       <a href="{{ url('/') }}" class="ct-nav__logo">
-        <img src="/static/logo.png?v={{ build_version }}" alt="CommonTrace" class="ct-nav__logo-img">
+        <img src="/static/logo.png?v={{ build_version }}" alt="CommonTrace" class="ct-nav__logo-img ct-nav__logo-img--light">
+        <img src="https://res.cloudinary.com/dc1keytee/image/upload/v1771731643/LOGO_DENEM-removebg-preview_x6itqy.png" alt="CommonTrace" class="ct-nav__logo-img ct-nav__logo-img--dark">
         <span class="ct-nav__logo-text">CommonTrace</span>
       </a>
 

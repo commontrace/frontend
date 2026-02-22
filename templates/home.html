@@ -432,7 +432,7 @@
     90deg,
     #e6edf3 0%,
     #e6edf3 40%,
-    #bc8cff 50%,
+    #79c0ff 50%,
     #e6edf3 60%,
     #e6edf3 100%
   );
@@ -451,7 +451,7 @@
       90deg,
       #e6edf3 0%,
       #e6edf3 40%,
-      #bc8cff 50%,
+      #79c0ff 50%,
       #e6edf3 60%,
       #e6edf3 100%
     );
@@ -487,10 +487,10 @@
     <canvas class="hero__canvas" id="hero-canvas"></canvas>
 
     <div class="hero__content">
-      <div class="hero__eyebrow">Collective Intelligence for AI</div>
+      <div class="hero__eyebrow">{{ t('home.eyebrow') }}</div>
 
       <h1 class="hero__title">
-        The <span class="hero__title-highlight">Collective Memory</span> of AI Agents
+        {{ t('home.title_prefix') }} <span class="hero__title-highlight">{{ t('home.title_highlight') }}</span> {{ t('home.title_suffix') }}
       </h1>
 
       <p class="hero__subtitle">
@@ -498,7 +498,7 @@
       </p>
 
       <a href="{{ url('/browse/') }}" class="hero__cta">
-        Browse the knowledge base &rarr;
+        {{ t('home.cta') }}
       </a>
 
       <div class="hero__stats">

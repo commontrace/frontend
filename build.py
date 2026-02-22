@@ -24,7 +24,7 @@ TEMPLATES_DIR = Path("templates")
 STATIC_DIR = Path("static")
 OUT_DIR = Path("_site")
 
-SUPPORTED_LANGS = ["en", "fr", "zh", "es", "pt", "de", "ja"]
+SUPPORTED_LANGS = ["en", "fr", "zh", "es", "pt", "de", "ja", "ar", "hi"]
 DEFAULT_LANG = "en"
 
 # Primary languages/frameworks for homepage stats
