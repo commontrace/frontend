@@ -13,9 +13,29 @@ import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
+import nh3
 from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
 from pygments.formatters import HtmlFormatter
+
+# Allowlisted HTML tags for sanitized markdown output
+_SAFE_TAGS = {
+    "a", "abbr", "b", "blockquote", "br", "code", "dd", "del", "details",
+    "div", "dl", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6", "hr",
+    "i", "img", "ins", "kbd", "li", "ol", "p", "pre", "s", "span",
+    "strong", "sub", "summary", "sup", "table", "tbody", "td", "th",
+    "thead", "tr", "ul",
+}
+_SAFE_ATTRS = {
+    "a": {"href", "title"},
+    "img": {"src", "alt", "title", "width", "height"},
+    "td": {"align"},
+    "th": {"align"},
+    "code": {"class"},
+    "span": {"class"},
+    "div": {"class"},
+    "pre": {"class"},
+}
 
 
 SEED_TRACES_PATH = Path("seed_traces.json")
@@ -41,13 +61,15 @@ def slugify(title: str) -> str:
 
 
 def render_md(text: str) -> str:
-    return markdown(
+    """Convert markdown to HTML and sanitize output to prevent XSS."""
+    raw_html = markdown(
         text,
         extensions=["fenced_code", "codehilite", "tables"],
         extension_configs={
             "codehilite": {"css_class": "highlight", "guess_lang": False}
         },
     )
+    return nh3.clean(raw_html, tags=_SAFE_TAGS, attributes=_SAFE_ATTRS)
 
 
 def find_related(trace: dict, all_traces: list[dict], limit: int = 5) -> list[dict]:
@@ -162,7 +184,7 @@ def build():
 
         # Jinja2 setup (fresh env per language for globals)
         env = Environment(
-            loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=False
+            loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True
         )
         env.globals["all_tags"] = all_tags_sorted
         env.globals["total_traces"] = len(traces)
