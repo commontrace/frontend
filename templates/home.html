@@ -23,10 +23,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 50vh;
+  max-height: 70vh;
   background: var(--bg-secondary);
   overflow: hidden;
-  padding: calc(var(--nav-height, 88px) + 3rem) 1.5rem 3rem;
+  padding: calc(var(--nav-height, 52px) + 3rem) 1.5rem 3rem;
 }
 
 .hero__canvas {
@@ -51,22 +52,23 @@
 }
 
 .hero__eyebrow {
+  font-family: var(--font-heading, 'Roboto Slab', serif);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-tertiary, #72777d);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .hero__title {
   font-family: var(--font-heading, 'Roboto Slab', serif);
-  font-size: clamp(2.25rem, 5vw, 3rem);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--hero-title, #20123a);
   line-height: 1.15;
   letter-spacing: -0.01em;
-  margin: 0 0 1.25rem;
+  margin: 0 0 1rem;
   border: none;
   padding: 0;
 }
@@ -74,90 +76,54 @@
 .hero__title-highlight {
   background: linear-gradient(
     90deg,
-    var(--accent, #3366cc) 0%,
-    #a855f7 50%,
-    var(--accent, #3366cc) 100%
+    #20123a 0%,
+    #20123a 40%,
+    #7c3aed 50%,
+    #20123a 60%,
+    #20123a 100%
   );
-  background-size: 200% auto;
+  background-size: 250% 100%;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
+  animation: shimmer 4s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% center; }
-  100% { background-position: -200% center; }
+  0%   { background-position: 100% center; }
+  100% { background-position: -50% center; }
 }
 
 .hero__subtitle {
-  font-size: 1.125rem;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 1.1rem;
   font-weight: 400;
   color: var(--text-secondary, #54595d);
-  line-height: 1.7;
-  max-width: 36rem;
-  margin: 0 0 2rem;
-}
-
-.hero__buttons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
 }
 
 .hero__cta {
-  display: inline-block;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
-  background: var(--accent, #3366cc);
-  padding: 0.625rem 1.75rem;
-  border-radius: var(--radius, 3px);
+  color: var(--link, #3366cc);
   text-decoration: none;
-  transition: background 0.15s ease;
 }
 
 .hero__cta:visited {
-  color: #fff;
+  color: var(--link, #3366cc);
 }
 
 .hero__cta:hover {
-  background: var(--link-hover, #2a4b8d);
-  text-decoration: none;
-  color: #fff;
-}
-
-.hero__cta--secondary {
-  background: transparent;
-  color: var(--text-secondary, #54595d);
-  border: 1px solid var(--border, #c8ccd1);
-}
-
-.hero__cta--secondary:visited {
-  color: var(--text-secondary, #54595d);
-}
-
-.hero__cta--secondary:hover {
-  background: transparent;
-  color: var(--text-primary, #202122);
-  border-color: var(--text-tertiary, #72777d);
+  color: var(--link-hover, #2a4b8d);
+  text-decoration: underline;
 }
 
 .hero__stats {
-  display: flex;
-  gap: 2.5rem;
-  text-align: center;
-}
-
-.hero__stat-value {
-  font-family: var(--font-heading, 'Roboto Slab', serif);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary, #202122);
-}
-
-.hero__stat-label {
-  font-size: 0.75rem;
+  margin-top: 2rem;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 0.875rem;
   color: var(--text-tertiary, #72777d);
 }
 
@@ -450,9 +416,49 @@
 
 @media (max-width: 640px) {
   .hero {
-    padding: calc(var(--nav-height, 88px) + 2rem) 1rem 2rem;
+    padding: calc(var(--nav-height, 52px) + 2rem) 1rem 2rem;
     min-height: auto;
     max-height: none;
+  }
+}
+
+/* --- Dark theme overrides for homepage --- */
+[data-theme="dark"] {
+  --hero-title: #e6edf3;
+}
+
+[data-theme="dark"] .hero__title-highlight {
+  background: linear-gradient(
+    90deg,
+    #e6edf3 0%,
+    #e6edf3 40%,
+    #79c0ff 50%,
+    #e6edf3 60%,
+    #e6edf3 100%
+  );
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --hero-title: #e6edf3;
+  }
+  html:not([data-theme="light"]) .hero__title-highlight {
+    background: linear-gradient(
+      90deg,
+      #e6edf3 0%,
+      #e6edf3 40%,
+      #79c0ff 50%,
+      #e6edf3 60%,
+      #e6edf3 100%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
 
@@ -465,7 +471,7 @@
   .hero__title-highlight {
     animation: none !important;
     background: none !important;
-    -webkit-text-fill-color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--hero-title, #20123a) !important;
   }
 }
 </style>
@@ -491,28 +497,12 @@
         {{ t('home.subtitle') }}
       </p>
 
-      <div class="hero__buttons">
-        <a href="{{ url('/browse/') }}" class="hero__cta">
-          Browse the knowledge base
-        </a>
-        <a href="https://docs.commontrace.org" class="hero__cta hero__cta--secondary" target="_blank" rel="noopener">
-          Read the docs
-        </a>
-      </div>
+      <a href="{{ url('/browse/') }}" class="hero__cta">
+        {{ t('home.cta') }}
+      </a>
 
       <div class="hero__stats">
-        <div>
-          <div class="hero__stat-value">{{ total_traces }}</div>
-          <div class="hero__stat-label">Traces</div>
-        </div>
-        <div>
-          <div class="hero__stat-value">{{ all_tags|length }}</div>
-          <div class="hero__stat-label">Categories</div>
-        </div>
-        <div>
-          <div class="hero__stat-value">{{ top_languages|length }}+</div>
-          <div class="hero__stat-label">Languages</div>
-        </div>
+        {{ total_traces }} traces &middot; {{ all_tags|length }} categories &middot; {{ top_languages|length }}+ languages
       </div>
     </div>
   </section>
