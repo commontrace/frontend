@@ -40,8 +40,8 @@
     connectionMouseOpacity: 0.22,
     mouseRadius: 200,
     mouseRadiusMobile: 130,
-    floatAmplitude: 8,
-    floatSpeed: 0.003,
+    floatAmplitude: 18,
+    floatSpeed: 0.008,
     pulseSpeed: 0.008,
     fps: 60,
   };
