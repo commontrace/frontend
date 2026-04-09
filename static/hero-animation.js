@@ -7,21 +7,21 @@
   }
 
   var LIGHT_COLORS = [
-    { r: 51, g: 102, b: 204 },  // Wikipedia blue
-    { r: 70, g: 130, b: 180 },  // Steel blue
-    { r: 100, g: 149, b: 237 }, // Cornflower
-    { r: 180, g: 155, b: 80 },  // Antique gold
-    { r: 160, g: 140, b: 100 }, // Muted gold
-    { r: 121, g: 92, b: 178 },  // Muted purple
+    { r: 51, g: 102, b: 204 },   // Wikipedia blue
+    { r: 70, g: 130, b: 180 },   // Steel blue
+    { r: 100, g: 149, b: 237 },  // Cornflower
+    { r: 180, g: 155, b: 80 },   // Antique gold
+    { r: 160, g: 140, b: 100 },  // Muted gold
+    { r: 121, g: 92, b: 178 },   // Muted purple
   ];
 
   var DARK_COLORS = [
-    { r: 88, g: 166, b: 255 },  // Bright blue
-    { r: 121, g: 192, b: 255 }, // Light blue
-    { r: 139, g: 233, b: 253 }, // Cyan
-    { r: 188, g: 140, b: 255 }, // Purple
-    { r: 210, g: 168, b: 255 }, // Soft purple
-    { r: 180, g: 155, b: 80 },  // Antique gold
+    { r: 88, g: 166, b: 255 },   // Bright blue
+    { r: 121, g: 192, b: 255 },  // Light blue
+    { r: 139, g: 233, b: 253 },  // Cyan
+    { r: 188, g: 140, b: 255 },  // Purple
+    { r: 210, g: 168, b: 255 },  // Soft purple
+    { r: 180, g: 155, b: 80 },   // Antique gold
   ];
 
   function isDarkTheme() {
@@ -32,34 +32,35 @@
   }
 
   var CONFIG = {
-    particleCount: 240,
-    particleCountMobile: 100,
-    connectionDistance: 130,
+    layers: 7,
+    nodesPerLayer: [6, 10, 14, 16, 14, 10, 6],
+    nodeMinSize: 2,
+    nodeMaxSize: 4,
+    connectionOpacity: 0.06,
+    connectionMouseOpacity: 0.22,
     mouseRadius: 200,
     mouseRadiusMobile: 130,
-    baseSpeed: 0.2,
-    mouseInfluence: 0.008,
-    particleMinSize: 1,
-    particleMaxSize: 2.8,
-    connectionOpacity: 0.07,
-    connectionMouseOpacity: 0.25,
+    floatAmplitude: 8,
+    floatSpeed: 0.003,
+    pulseSpeed: 0.008,
     fps: 60,
-    colors: isDarkTheme() ? DARK_COLORS : LIGHT_COLORS,
   };
 
   function HeroAnimation(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
-    this.particles = [];
+    this.nodes = [];
+    this.connections = [];
     this.mouse = { x: -1000, y: -1000, active: false };
     this.raf = null;
     this.lastFrame = 0;
     this.frameInterval = 1000 / CONFIG.fps;
     this.isMobile = window.innerWidth < 768;
     this.pulseWaves = [];
+    this.time = 0;
 
     this._resize();
-    this._createParticles();
+    this._createNetwork();
     this._bindEvents();
     this._observeTheme();
     this._loop();
@@ -78,127 +79,149 @@
     this.isMobile = window.innerWidth < 768;
   };
 
-  HeroAnimation.prototype._createParticles = function () {
-    var count = this.isMobile ? CONFIG.particleCountMobile : CONFIG.particleCount;
-    this.particles = [];
-    for (var i = 0; i < count; i++) {
-      var color = CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)];
-      this.particles.push({
-        x: Math.random() * this.width,
-        y: Math.random() * this.height,
-        vx: (Math.random() - 0.5) * CONFIG.baseSpeed * 2,
-        vy: (Math.random() - 0.5) * CONFIG.baseSpeed * 2,
-        size: CONFIG.particleMinSize + Math.random() * (CONFIG.particleMaxSize - CONFIG.particleMinSize),
-        baseAlpha: isDarkTheme() ? (0.25 + Math.random() * 0.4) : (0.15 + Math.random() * 0.35),
-        alpha: 0,
-        color: color,
-        phase: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.005 + Math.random() * 0.01,
-        floatX: Math.random() * Math.PI * 2,
-        floatY: Math.random() * Math.PI * 2,
-      });
-    }
-  };
+  HeroAnimation.prototype._createNetwork = function () {
+    var colors = isDarkTheme() ? DARK_COLORS : LIGHT_COLORS;
+    var layers = this.isMobile ? 5 : CONFIG.layers;
+    var nodesPerLayer = this.isMobile
+      ? [4, 6, 8, 6, 4]
+      : CONFIG.nodesPerLayer;
+    var w = this.width;
+    var h = this.height;
+    var marginX = w * 0.08;
+    var layerSpacing = (w - marginX * 2) / (layers - 1);
 
-  HeroAnimation.prototype._updateParticle = function (p) {
-    p.floatX += 0.003;
-    p.floatY += 0.004;
-    p.x += p.vx + Math.sin(p.floatX) * 0.15;
-    p.y += p.vy + Math.cos(p.floatY) * 0.15;
+    this.nodes = [];
+    this.connections = [];
 
-    p.phase += p.pulseSpeed;
-    p.alpha = p.baseAlpha + Math.sin(p.phase) * 0.05;
+    // Create nodes in layers
+    for (var l = 0; l < layers; l++) {
+      var count = nodesPerLayer[l];
+      var x = marginX + l * layerSpacing;
+      var totalH = h * 0.7;
+      var startY = (h - totalH) / 2;
+      var nodeSpacing = totalH / (count + 1);
 
-    var mouseR = this.isMobile ? CONFIG.mouseRadiusMobile : CONFIG.mouseRadius;
-    if (this.mouse.active) {
-      var dx = this.mouse.x - p.x;
-      var dy = this.mouse.y - p.y;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < mouseR && dist > 5) {
-        var force = (1 - dist / mouseR) * CONFIG.mouseInfluence;
-        p.vx += (dx / dist) * force;
-        p.vy += (dy / dist) * force;
-        p.alpha = Math.min(0.85, p.alpha + (1 - dist / mouseR) * 0.4);
-        p.renderSize = p.size * (1 + (1 - dist / mouseR) * 0.8);
-      } else {
-        p.renderSize = p.size;
+      for (var n = 0; n < count; n++) {
+        var y = startY + (n + 1) * nodeSpacing;
+        var color = colors[Math.floor(Math.random() * colors.length)];
+        this.nodes.push({
+          baseX: x,
+          baseY: y,
+          x: x,
+          y: y,
+          layer: l,
+          size: CONFIG.nodeMinSize + Math.random() * (CONFIG.nodeMaxSize - CONFIG.nodeMinSize),
+          baseAlpha: isDarkTheme() ? (0.3 + Math.random() * 0.4) : (0.2 + Math.random() * 0.35),
+          alpha: 0,
+          color: color,
+          phase: Math.random() * Math.PI * 2,
+          floatPhaseX: Math.random() * Math.PI * 2,
+          floatPhaseY: Math.random() * Math.PI * 2,
+          renderSize: 0,
+        });
       }
-    } else {
-      p.renderSize = p.size;
     }
 
-    p.vx *= 0.997;
-    p.vy *= 0.997;
-
-    var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-    var maxSpeed = CONFIG.baseSpeed * 3;
-    if (speed > maxSpeed) {
-      p.vx = (p.vx / speed) * maxSpeed;
-      p.vy = (p.vy / speed) * maxSpeed;
+    // Create connections between adjacent layers (random subset)
+    for (var i = 0; i < this.nodes.length; i++) {
+      for (var j = i + 1; j < this.nodes.length; j++) {
+        var a = this.nodes[i];
+        var b = this.nodes[j];
+        // Only connect adjacent layers
+        if (Math.abs(a.layer - b.layer) !== 1) continue;
+        // Random subset: ~40% of possible connections
+        if (Math.random() > 0.4) continue;
+        this.connections.push({ from: i, to: j });
+      }
     }
-
-    var pad = 20;
-    if (p.x < -pad) p.x = this.width + pad;
-    if (p.x > this.width + pad) p.x = -pad;
-    if (p.y < -pad) p.y = this.height + pad;
-    if (p.y > this.height + pad) p.y = -pad;
   };
 
-  HeroAnimation.prototype._drawParticle = function (p) {
-    var ctx = this.ctx;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.renderSize || p.size, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + "," + p.alpha + ")";
-    ctx.fill();
+  HeroAnimation.prototype._update = function () {
+    this.time += 1;
+    var mouseR = this.isMobile ? CONFIG.mouseRadiusMobile : CONFIG.mouseRadius;
 
-    if (p.alpha > 0.45) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, (p.renderSize || p.size) * 3, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + "," + (p.alpha * 0.12) + ")";
-      ctx.fill();
+    for (var i = 0; i < this.nodes.length; i++) {
+      var node = this.nodes[i];
+
+      // Gentle floating
+      node.x = node.baseX + Math.sin(this.time * CONFIG.floatSpeed + node.floatPhaseX) * CONFIG.floatAmplitude;
+      node.y = node.baseY + Math.cos(this.time * CONFIG.floatSpeed * 0.7 + node.floatPhaseY) * CONFIG.floatAmplitude * 0.6;
+
+      // Pulse alpha
+      node.phase += CONFIG.pulseSpeed;
+      node.alpha = node.baseAlpha + Math.sin(node.phase) * 0.08;
+      node.renderSize = node.size;
+
+      // Mouse interaction
+      if (this.mouse.active) {
+        var dx = this.mouse.x - node.x;
+        var dy = this.mouse.y - node.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < mouseR) {
+          var factor = 1 - dist / mouseR;
+          node.alpha = Math.min(0.9, node.alpha + factor * 0.45);
+          node.renderSize = node.size * (1 + factor * 1.2);
+          // Slight attraction
+          node.x += dx * factor * 0.015;
+          node.y += dy * factor * 0.015;
+        }
+      }
     }
   };
 
   HeroAnimation.prototype._drawConnections = function () {
     var ctx = this.ctx;
-    var particles = this.particles;
     var mouseR = this.isMobile ? CONFIG.mouseRadiusMobile : CONFIG.mouseRadius;
 
-    for (var i = 0; i < particles.length; i++) {
-      for (var j = i + 1; j < particles.length; j++) {
-        var dx = particles[i].x - particles[j].x;
-        var dy = particles[i].y - particles[j].y;
-        var dist = Math.sqrt(dx * dx + dy * dy);
+    for (var i = 0; i < this.connections.length; i++) {
+      var conn = this.connections[i];
+      var a = this.nodes[conn.from];
+      var b = this.nodes[conn.to];
 
-        if (dist < CONFIG.connectionDistance) {
-          var opacity = CONFIG.connectionOpacity * (1 - dist / CONFIG.connectionDistance);
+      var opacity = CONFIG.connectionOpacity;
 
-          if (this.mouse.active) {
-            var mx = (particles[i].x + particles[j].x) / 2;
-            var my = (particles[i].y + particles[j].y) / 2;
-            var md = Math.sqrt(
-              (mx - this.mouse.x) * (mx - this.mouse.x) +
-              (my - this.mouse.y) * (my - this.mouse.y)
-            );
-            if (md < mouseR) {
-              var boost = (1 - md / mouseR);
-              opacity = opacity + boost * CONFIG.connectionMouseOpacity;
-            }
-          }
-
-          var c1 = particles[i].color;
-          var c2 = particles[j].color;
-          var r = Math.round((c1.r + c2.r) / 2);
-          var g = Math.round((c1.g + c2.g) / 2);
-          var b = Math.round((c1.b + c2.b) / 2);
-
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + opacity + ")";
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
+      // Boost near mouse
+      if (this.mouse.active) {
+        var mx = (a.x + b.x) / 2;
+        var my = (a.y + b.y) / 2;
+        var md = Math.sqrt(
+          (mx - this.mouse.x) * (mx - this.mouse.x) +
+          (my - this.mouse.y) * (my - this.mouse.y)
+        );
+        if (md < mouseR) {
+          opacity += (1 - md / mouseR) * CONFIG.connectionMouseOpacity;
         }
+      }
+
+      // Blend colors
+      var r = Math.round((a.color.r + b.color.r) / 2);
+      var g = Math.round((a.color.g + b.color.g) / 2);
+      var bl = Math.round((a.color.b + b.color.b) / 2);
+
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = "rgba(" + r + "," + g + "," + bl + "," + opacity + ")";
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+    }
+  };
+
+  HeroAnimation.prototype._drawNodes = function () {
+    var ctx = this.ctx;
+    for (var i = 0; i < this.nodes.length; i++) {
+      var n = this.nodes[i];
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.renderSize, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(" + n.color.r + "," + n.color.g + "," + n.color.b + "," + n.alpha + ")";
+      ctx.fill();
+
+      // Glow for bright nodes
+      if (n.alpha > 0.45) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.renderSize * 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(" + n.color.r + "," + n.color.g + "," + n.color.b + "," + (n.alpha * 0.1) + ")";
+        ctx.fill();
       }
     }
   };
@@ -229,26 +252,18 @@
       self.lastFrame = ts;
 
       self.ctx.clearRect(0, 0, self.width, self.height);
-
-      for (var i = 0; i < self.particles.length; i++) {
-        self._updateParticle(self.particles[i]);
-      }
-
+      self._update();
       self._drawConnections();
       self._drawPulseWaves();
-
-      for (var j = 0; j < self.particles.length; j++) {
-        self._drawParticle(self.particles[j]);
-      }
+      self._drawNodes();
     });
   };
 
   HeroAnimation.prototype._updateThemeColors = function () {
     var newColors = isDarkTheme() ? DARK_COLORS : LIGHT_COLORS;
-    CONFIG.colors = newColors;
-    for (var i = 0; i < this.particles.length; i++) {
-      this.particles[i].color = newColors[Math.floor(Math.random() * newColors.length)];
-      this.particles[i].baseAlpha = isDarkTheme() ? (0.25 + Math.random() * 0.4) : (0.15 + Math.random() * 0.35);
+    for (var i = 0; i < this.nodes.length; i++) {
+      this.nodes[i].color = newColors[Math.floor(Math.random() * newColors.length)];
+      this.nodes[i].baseAlpha = isDarkTheme() ? (0.3 + Math.random() * 0.4) : (0.2 + Math.random() * 0.35);
     }
   };
 
@@ -313,7 +328,7 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
         self._resize();
-        self._createParticles();
+        self._createNetwork();
       }, 200);
     });
 
