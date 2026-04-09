@@ -1,32 +1,27 @@
-/**
- * CommonTrace Hero Animation
- *
- * Interactive neural network / knowledge graph canvas animation.
- * Adapted for LIGHT background — warm blues and teals on white/cream.
- * 250+ particles with connections, mouse interaction, accent colors.
- * Performance-optimized with requestAnimationFrame, throttled mouse events,
- * and device pixel ratio awareness.
- */
-(function() {
-  'use strict';
+(function () {
+  "use strict";
 
-  // ---- Configuration ----
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.HeroAnimation = function () {};
+    return;
+  }
+
   var LIGHT_COLORS = [
-    { r: 51, g: 102, b: 204 },   // Wikipedia blue
-    { r: 100, g: 149, b: 237 },  // Cornflower blue
-    { r: 70, g: 130, b: 180 },   // Steel blue
-    { r: 72, g: 166, b: 167 },   // Teal
-    { r: 147, g: 197, b: 253 },  // Light blue
-    { r: 121, g: 92, b: 178 }    // Muted purple
+    { r: 51, g: 102, b: 204 },  // Wikipedia blue
+    { r: 70, g: 130, b: 180 },  // Steel blue
+    { r: 100, g: 149, b: 237 }, // Cornflower
+    { r: 180, g: 155, b: 80 },  // Antique gold
+    { r: 160, g: 140, b: 100 }, // Muted gold
+    { r: 121, g: 92, b: 178 },  // Muted purple
   ];
 
   var DARK_COLORS = [
-    { r: 88, g: 166, b: 255 },   // Bright blue
-    { r: 121, g: 192, b: 255 },  // Light blue
-    { r: 139, g: 233, b: 253 },  // Cyan
-    { r: 188, g: 140, b: 255 },  // Purple
-    { r: 63, g: 185, b: 80 },    // Green
-    { r: 210, g: 168, b: 255 }   // Soft purple
+    { r: 88, g: 166, b: 255 },  // Bright blue
+    { r: 121, g: 192, b: 255 }, // Light blue
+    { r: 139, g: 233, b: 253 }, // Cyan
+    { r: 188, g: 140, b: 255 }, // Purple
+    { r: 210, g: 168, b: 255 }, // Soft purple
+    { r: 180, g: 155, b: 80 },  // Antique gold
   ];
 
   function isDarkTheme() {
@@ -37,342 +32,232 @@
   }
 
   var CONFIG = {
-    particleCount: 280,
-    particleCountMobile: 120,
-    connectionDistance: 120,
-    connectionDistanceMobile: 90,
-    mouseRadius: 180,
-    mouseRadiusMobile: 120,
-    baseSpeed: 0.25,
-    mouseInfluence: 0.012,
+    particleCount: 240,
+    particleCountMobile: 100,
+    connectionDistance: 130,
+    mouseRadius: 200,
+    mouseRadiusMobile: 130,
+    baseSpeed: 0.2,
+    mouseInfluence: 0.008,
     particleMinSize: 1,
-    particleMaxSize: 2.5,
-    particleMinSizeMobile: 0.8,
-    particleMaxSizeMobile: 2,
-    connectionOpacity: 0.08,
-    connectionMouseOpacity: 0.2,
+    particleMaxSize: 2.8,
+    connectionOpacity: 0.07,
+    connectionMouseOpacity: 0.25,
     fps: 60,
-    colors: isDarkTheme() ? DARK_COLORS : LIGHT_COLORS
+    colors: isDarkTheme() ? DARK_COLORS : LIGHT_COLORS,
   };
 
-  // ---- Utility ----
-  function isMobile() {
-    return window.innerWidth < 768;
-  }
-
-  function lerp(a, b, t) {
-    return a + (b - a) * t;
-  }
-
-  // ---- Particle class ----
-  function Particle(width, height, config) {
-    this.reset(width, height, config);
-  }
-
-  Particle.prototype.reset = function(width, height, config) {
-    this.x = Math.random() * width;
-    this.y = Math.random() * height;
-    this.vx = (Math.random() - 0.5) * config.baseSpeed * 2;
-    this.vy = (Math.random() - 0.5) * config.baseSpeed * 2;
-    var colorIndex = Math.floor(Math.random() * config.colors.length);
-    this.color = config.colors[colorIndex];
-    var mobile = isMobile();
-    var minSize = mobile ? config.particleMinSizeMobile : config.particleMinSize;
-    var maxSize = mobile ? config.particleMaxSizeMobile : config.particleMaxSize;
-    this.baseSize = minSize + Math.random() * (maxSize - minSize);
-    this.size = this.baseSize;
-    this.baseAlpha = isDarkTheme() ? (0.3 + Math.random() * 0.4) : (0.2 + Math.random() * 0.35);
-    this.alpha = this.baseAlpha;
-    this.pulsePhase = Math.random() * Math.PI * 2;
-    this.pulseSpeed = 0.005 + Math.random() * 0.01;
-  };
-
-  Particle.prototype.update = function(width, height, mouseX, mouseY, mouseActive, config, time) {
-    // Gentle floating motion with sine wave
-    this.x += this.vx + Math.sin(time * 0.001 + this.pulsePhase) * 0.05;
-    this.y += this.vy + Math.cos(time * 0.001 + this.pulsePhase * 1.3) * 0.05;
-
-    // Wrap around edges with padding
-    var pad = 20;
-    if (this.x < -pad) this.x = width + pad;
-    if (this.x > width + pad) this.x = -pad;
-    if (this.y < -pad) this.y = height + pad;
-    if (this.y > height + pad) this.y = -pad;
-
-    // Mouse interaction
-    var mouseRadius = isMobile() ? config.mouseRadiusMobile : config.mouseRadius;
-    if (mouseActive) {
-      var dx = this.x - mouseX;
-      var dy = this.y - mouseY;
-      var distSq = dx * dx + dy * dy;
-      var radiusSq = mouseRadius * mouseRadius;
-
-      if (distSq < radiusSq) {
-        var dist = Math.sqrt(distSq);
-        var force = (1 - dist / mouseRadius) * config.mouseInfluence;
-        // Gentle push away from cursor
-        this.vx += dx * force;
-        this.vy += dy * force;
-        // Brighten near mouse
-        this.alpha = lerp(this.baseAlpha, 0.8, 1 - dist / mouseRadius);
-        this.size = lerp(this.baseSize, this.baseSize * 2, (1 - dist / mouseRadius) * 0.5);
-      } else {
-        this.alpha = this.baseAlpha;
-        this.size = this.baseSize;
-      }
-    } else {
-      this.alpha = this.baseAlpha;
-      this.size = this.baseSize;
-    }
-
-    // Gentle pulse
-    this.alpha += Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.06;
-    this.alpha = Math.max(0.08, Math.min(0.7, this.alpha));
-
-    // Damping to keep velocities in check
-    this.vx *= 0.998;
-    this.vy *= 0.998;
-
-    // Speed limit
-    var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-    var maxSpeed = config.baseSpeed * 3;
-    if (speed > maxSpeed) {
-      this.vx = (this.vx / speed) * maxSpeed;
-      this.vy = (this.vy / speed) * maxSpeed;
-    }
-  };
-
-  // ---- Main Animation Controller ----
   function HeroAnimation(canvas) {
-    if (!canvas || !canvas.getContext) return;
-
     this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
+    this.ctx = canvas.getContext("2d");
     this.particles = [];
-    this.mouseX = -1000;
-    this.mouseY = -1000;
-    this.mouseActive = false;
-    this.running = true;
+    this.mouse = { x: -1000, y: -1000, active: false };
+    this.raf = null;
     this.lastFrame = 0;
     this.frameInterval = 1000 / CONFIG.fps;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.isMobile = window.innerWidth < 768;
+    this.pulseWaves = [];
 
-    this.resize();
-    this.initParticles();
-    this.bindEvents();
-    this.observeTheme();
-    this.animate(0);
+    this._resize();
+    this._createParticles();
+    this._bindEvents();
+    this._observeTheme();
+    this._loop();
   }
 
-  HeroAnimation.prototype.resize = function() {
+  HeroAnimation.prototype._resize = function () {
     var rect = this.canvas.parentElement.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.width = rect.width;
     this.height = rect.height;
-    this.canvas.width = this.width * this.dpr;
-    this.canvas.height = this.height * this.dpr;
-    this.canvas.style.width = this.width + 'px';
-    this.canvas.style.height = this.height + 'px';
-    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this.canvas.width = this.width * dpr;
+    this.canvas.height = this.height * dpr;
+    this.canvas.style.width = this.width + "px";
+    this.canvas.style.height = this.height + "px";
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.isMobile = window.innerWidth < 768;
   };
 
-  HeroAnimation.prototype.initParticles = function() {
-    var count = isMobile() ? CONFIG.particleCountMobile : CONFIG.particleCount;
+  HeroAnimation.prototype._createParticles = function () {
+    var count = this.isMobile ? CONFIG.particleCountMobile : CONFIG.particleCount;
     this.particles = [];
     for (var i = 0; i < count; i++) {
-      this.particles.push(new Particle(this.width, this.height, CONFIG));
+      var color = CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)];
+      this.particles.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        vx: (Math.random() - 0.5) * CONFIG.baseSpeed * 2,
+        vy: (Math.random() - 0.5) * CONFIG.baseSpeed * 2,
+        size: CONFIG.particleMinSize + Math.random() * (CONFIG.particleMaxSize - CONFIG.particleMinSize),
+        baseAlpha: isDarkTheme() ? (0.25 + Math.random() * 0.4) : (0.15 + Math.random() * 0.35),
+        alpha: 0,
+        color: color,
+        phase: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.005 + Math.random() * 0.01,
+        floatX: Math.random() * Math.PI * 2,
+        floatY: Math.random() * Math.PI * 2,
+      });
     }
   };
 
-  HeroAnimation.prototype.bindEvents = function() {
-    var self = this;
+  HeroAnimation.prototype._updateParticle = function (p) {
+    p.floatX += 0.003;
+    p.floatY += 0.004;
+    p.x += p.vx + Math.sin(p.floatX) * 0.15;
+    p.y += p.vy + Math.cos(p.floatY) * 0.15;
 
-    // Throttled mouse move
-    var mouseThrottle = null;
-    var heroSection = this.canvas.parentElement;
+    p.phase += p.pulseSpeed;
+    p.alpha = p.baseAlpha + Math.sin(p.phase) * 0.05;
 
-    document.addEventListener('mousemove', function(e) {
-      if (mouseThrottle) return;
-      mouseThrottle = requestAnimationFrame(function() {
-        var rect = heroSection.getBoundingClientRect();
-        self.mouseX = e.clientX - rect.left;
-        self.mouseY = e.clientY - rect.top;
-        self.mouseActive = (
-          self.mouseX >= 0 && self.mouseX <= self.width &&
-          self.mouseY >= 0 && self.mouseY <= self.height
-        );
-        mouseThrottle = null;
-      });
-    }, { passive: true });
-
-    document.addEventListener('mouseleave', function() {
-      self.mouseActive = false;
-    }, { passive: true });
-
-    // Touch support
-    heroSection.addEventListener('touchmove', function(e) {
-      if (mouseThrottle) return;
-      mouseThrottle = requestAnimationFrame(function() {
-        var touch = e.touches[0];
-        if (touch) {
-          var rect = heroSection.getBoundingClientRect();
-          self.mouseX = touch.clientX - rect.left;
-          self.mouseY = touch.clientY - rect.top;
-          self.mouseActive = true;
-        }
-        mouseThrottle = null;
-      });
-    }, { passive: true });
-
-    heroSection.addEventListener('touchend', function() {
-      self.mouseActive = false;
-    }, { passive: true });
-
-    // Resize handler (debounced)
-    var resizeTimer;
-    window.addEventListener('resize', function() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() {
-        self.dpr = Math.min(window.devicePixelRatio || 1, 2);
-        self.resize();
-        // Reinitialize particles if count changed
-        var newCount = isMobile() ? CONFIG.particleCountMobile : CONFIG.particleCount;
-        if (self.particles.length !== newCount) {
-          self.initParticles();
-        }
-      }, 200);
-    }, { passive: true });
-
-    // Visibility change: pause when hidden
-    document.addEventListener('visibilitychange', function() {
-      self.running = !document.hidden;
-      if (self.running) {
-        self.lastFrame = 0;
-        requestAnimationFrame(function(t) { self.animate(t); });
+    var mouseR = this.isMobile ? CONFIG.mouseRadiusMobile : CONFIG.mouseRadius;
+    if (this.mouse.active) {
+      var dx = this.mouse.x - p.x;
+      var dy = this.mouse.y - p.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < mouseR && dist > 5) {
+        var force = (1 - dist / mouseR) * CONFIG.mouseInfluence;
+        p.vx += (dx / dist) * force;
+        p.vy += (dy / dist) * force;
+        p.alpha = Math.min(0.85, p.alpha + (1 - dist / mouseR) * 0.4);
+        p.renderSize = p.size * (1 + (1 - dist / mouseR) * 0.8);
+      } else {
+        p.renderSize = p.size;
       }
-    });
+    } else {
+      p.renderSize = p.size;
+    }
+
+    p.vx *= 0.997;
+    p.vy *= 0.997;
+
+    var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+    var maxSpeed = CONFIG.baseSpeed * 3;
+    if (speed > maxSpeed) {
+      p.vx = (p.vx / speed) * maxSpeed;
+      p.vy = (p.vy / speed) * maxSpeed;
+    }
+
+    var pad = 20;
+    if (p.x < -pad) p.x = this.width + pad;
+    if (p.x > this.width + pad) p.x = -pad;
+    if (p.y < -pad) p.y = this.height + pad;
+    if (p.y > this.height + pad) p.y = -pad;
   };
 
-  HeroAnimation.prototype.drawConnections = function(time) {
-    var particles = this.particles;
-    var len = particles.length;
-    var connDist = isMobile() ? CONFIG.connectionDistanceMobile : CONFIG.connectionDistance;
-    var connDistSq = connDist * connDist;
-    var mouseRadius = isMobile() ? CONFIG.mouseRadiusMobile : CONFIG.mouseRadius;
-    var mouseRadiusSq = mouseRadius * mouseRadius;
+  HeroAnimation.prototype._drawParticle = function (p) {
     var ctx = this.ctx;
-    var mouseX = this.mouseX;
-    var mouseY = this.mouseY;
-    var mouseActive = this.mouseActive;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.renderSize || p.size, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + "," + p.alpha + ")";
+    ctx.fill();
 
-    ctx.lineWidth = 0.5;
+    if (p.alpha > 0.45) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, (p.renderSize || p.size) * 3, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + "," + (p.alpha * 0.12) + ")";
+      ctx.fill();
+    }
+  };
 
-    for (var i = 0; i < len; i++) {
-      var pi = particles[i];
-      for (var j = i + 1; j < len; j++) {
-        var pj = particles[j];
-        var dx = pi.x - pj.x;
-        var dy = pi.y - pj.y;
-        var distSq = dx * dx + dy * dy;
+  HeroAnimation.prototype._drawConnections = function () {
+    var ctx = this.ctx;
+    var particles = this.particles;
+    var mouseR = this.isMobile ? CONFIG.mouseRadiusMobile : CONFIG.mouseRadius;
 
-        if (distSq < connDistSq) {
-          var dist = Math.sqrt(distSq);
-          var alpha = (1 - dist / connDist) * CONFIG.connectionOpacity;
+    for (var i = 0; i < particles.length; i++) {
+      for (var j = i + 1; j < particles.length; j++) {
+        var dx = particles[i].x - particles[j].x;
+        var dy = particles[i].y - particles[j].y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
 
-          // Boost connections near mouse
-          if (mouseActive) {
-            var midX = (pi.x + pj.x) * 0.5;
-            var midY = (pi.y + pj.y) * 0.5;
-            var mDx = midX - mouseX;
-            var mDy = midY - mouseY;
-            var mDistSq = mDx * mDx + mDy * mDy;
-            if (mDistSq < mouseRadiusSq) {
-              var mDist = Math.sqrt(mDistSq);
-              alpha = lerp(alpha, CONFIG.connectionMouseOpacity, 1 - mDist / mouseRadius);
+        if (dist < CONFIG.connectionDistance) {
+          var opacity = CONFIG.connectionOpacity * (1 - dist / CONFIG.connectionDistance);
+
+          if (this.mouse.active) {
+            var mx = (particles[i].x + particles[j].x) / 2;
+            var my = (particles[i].y + particles[j].y) / 2;
+            var md = Math.sqrt(
+              (mx - this.mouse.x) * (mx - this.mouse.x) +
+              (my - this.mouse.y) * (my - this.mouse.y)
+            );
+            if (md < mouseR) {
+              var boost = (1 - md / mouseR);
+              opacity = opacity + boost * CONFIG.connectionMouseOpacity;
             }
           }
 
-          // Color: blend between the two particle colors
-          var r = Math.round((pi.color.r + pj.color.r) * 0.5);
-          var g = Math.round((pi.color.g + pj.color.g) * 0.5);
-          var b = Math.round((pi.color.b + pj.color.b) * 0.5);
+          var c1 = particles[i].color;
+          var c2 = particles[j].color;
+          var r = Math.round((c1.r + c2.r) / 2);
+          var g = Math.round((c1.g + c2.g) / 2);
+          var b = Math.round((c1.b + c2.b) / 2);
 
           ctx.beginPath();
-          ctx.moveTo(pi.x, pi.y);
-          ctx.lineTo(pj.x, pj.y);
-          ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha.toFixed(3) + ')';
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + opacity + ")";
+          ctx.lineWidth = 0.5;
           ctx.stroke();
         }
       }
     }
   };
 
-  HeroAnimation.prototype.drawParticles = function(time) {
-    var particles = this.particles;
-    var len = particles.length;
+  HeroAnimation.prototype._drawPulseWaves = function () {
     var ctx = this.ctx;
-
-    for (var i = 0; i < len; i++) {
-      var p = particles[i];
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(' + p.color.r + ',' + p.color.g + ',' + p.color.b + ',' + p.alpha.toFixed(3) + ')';
-      ctx.fill();
-
-      // Draw subtle glow for brighter particles
-      if (p.alpha > 0.45) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + p.color.r + ',' + p.color.g + ',' + p.color.b + ',' + (p.alpha * 0.04).toFixed(3) + ')';
-        ctx.fill();
+    for (var i = this.pulseWaves.length - 1; i >= 0; i--) {
+      var w = this.pulseWaves[i];
+      w.radius += 2;
+      w.alpha -= 0.008;
+      if (w.alpha <= 0) {
+        this.pulseWaves.splice(i, 1);
+        continue;
       }
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(51,102,204," + w.alpha + ")";
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
   };
 
-  HeroAnimation.prototype.animate = function(timestamp) {
-    if (!this.running) return;
-
+  HeroAnimation.prototype._loop = function () {
     var self = this;
-    requestAnimationFrame(function(t) { self.animate(t); });
+    this.raf = requestAnimationFrame(function (ts) {
+      self._loop();
+      if (ts - self.lastFrame < self.frameInterval) return;
+      self.lastFrame = ts;
 
-    // Frame rate limiting
-    if (timestamp - this.lastFrame < this.frameInterval) return;
-    this.lastFrame = timestamp;
+      self.ctx.clearRect(0, 0, self.width, self.height);
 
-    var ctx = this.ctx;
-    var width = this.width;
-    var height = this.height;
+      for (var i = 0; i < self.particles.length; i++) {
+        self._updateParticle(self.particles[i]);
+      }
 
-    // Clear
-    ctx.clearRect(0, 0, width, height);
+      self._drawConnections();
+      self._drawPulseWaves();
 
-    // Update particles
-    var particles = this.particles;
-    var len = particles.length;
-    for (var i = 0; i < len; i++) {
-      particles[i].update(width, height, this.mouseX, this.mouseY, this.mouseActive, CONFIG, timestamp);
-    }
-
-    // Draw connections then particles (particles on top)
-    this.drawConnections(timestamp);
-    this.drawParticles(timestamp);
+      for (var j = 0; j < self.particles.length; j++) {
+        self._drawParticle(self.particles[j]);
+      }
+    });
   };
 
-  HeroAnimation.prototype.updateThemeColors = function() {
+  HeroAnimation.prototype._updateThemeColors = function () {
     var newColors = isDarkTheme() ? DARK_COLORS : LIGHT_COLORS;
     CONFIG.colors = newColors;
-    // Update existing particles with new colors
     for (var i = 0; i < this.particles.length; i++) {
-      var colorIndex = Math.floor(Math.random() * newColors.length);
-      this.particles[i].color = newColors[colorIndex];
+      this.particles[i].color = newColors[Math.floor(Math.random() * newColors.length)];
+      this.particles[i].baseAlpha = isDarkTheme() ? (0.25 + Math.random() * 0.4) : (0.15 + Math.random() * 0.35);
     }
   };
 
-  HeroAnimation.prototype.observeTheme = function() {
+  HeroAnimation.prototype._observeTheme = function () {
     var self = this;
-    var observer = new MutationObserver(function(mutations) {
+    var observer = new MutationObserver(function (mutations) {
       for (var i = 0; i < mutations.length; i++) {
         if (mutations[i].attributeName === 'data-theme') {
-          self.updateThemeColors();
+          self._updateThemeColors();
           break;
         }
       }
@@ -380,16 +265,67 @@
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   };
 
-  HeroAnimation.prototype.destroy = function() {
-    this.running = false;
+  HeroAnimation.prototype._bindEvents = function () {
+    var self = this;
+    var rafMouse = null;
+
+    function onMove(x, y) {
+      if (rafMouse) return;
+      rafMouse = requestAnimationFrame(function () {
+        var rect = self.canvas.getBoundingClientRect();
+        self.mouse.x = x - rect.left;
+        self.mouse.y = y - rect.top;
+        self.mouse.active = true;
+        rafMouse = null;
+      });
+    }
+
+    this.canvas.parentElement.addEventListener("mousemove", function (e) {
+      onMove(e.clientX, e.clientY);
+    });
+
+    this.canvas.parentElement.addEventListener("mouseleave", function () {
+      self.mouse.active = false;
+    });
+
+    this.canvas.parentElement.addEventListener("touchmove", function (e) {
+      if (e.touches.length > 0) {
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    this.canvas.parentElement.addEventListener("touchend", function () {
+      self.mouse.active = false;
+    });
+
+    this.canvas.parentElement.addEventListener("click", function (e) {
+      var rect = self.canvas.getBoundingClientRect();
+      self.pulseWaves.push({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+        radius: 5,
+        alpha: 0.3,
+      });
+    });
+
+    var resizeTimer;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        self._resize();
+        self._createParticles();
+      }, 200);
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        if (self.raf) cancelAnimationFrame(self.raf);
+      } else {
+        self.lastFrame = 0;
+        self._loop();
+      }
+    });
   };
 
-  // Expose as global
   window.HeroAnimation = HeroAnimation;
-
-  // Reduced motion: skip canvas entirely
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    window.HeroAnimation = function() {};
-  }
-
 })();
