@@ -11,31 +11,6 @@
   'use strict';
 
   // ---- Configuration ----
-  var LIGHT_COLORS = [
-    { r: 51, g: 102, b: 204 },   // Wikipedia blue
-    { r: 100, g: 149, b: 237 },  // Cornflower blue
-    { r: 70, g: 130, b: 180 },   // Steel blue
-    { r: 72, g: 166, b: 167 },   // Teal
-    { r: 147, g: 197, b: 253 },  // Light blue
-    { r: 121, g: 92, b: 178 }    // Muted purple
-  ];
-
-  var DARK_COLORS = [
-    { r: 88, g: 166, b: 255 },   // Bright blue
-    { r: 121, g: 192, b: 255 },  // Light blue
-    { r: 139, g: 233, b: 253 },  // Cyan
-    { r: 188, g: 140, b: 255 },  // Purple
-    { r: 63, g: 185, b: 80 },    // Green
-    { r: 210, g: 168, b: 255 }   // Soft purple
-  ];
-
-  function isDarkTheme() {
-    var theme = document.documentElement.getAttribute('data-theme');
-    if (theme === 'dark') return true;
-    if (theme === 'light') return false;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
-
   var CONFIG = {
     particleCount: 280,
     particleCountMobile: 120,
@@ -52,7 +27,14 @@
     connectionOpacity: 0.08,
     connectionMouseOpacity: 0.2,
     fps: 60,
-    colors: isDarkTheme() ? DARK_COLORS : LIGHT_COLORS
+    colors: [
+      { r: 51, g: 102, b: 204 },   // Wikipedia blue
+      { r: 100, g: 149, b: 237 },  // Cornflower blue
+      { r: 70, g: 130, b: 180 },   // Steel blue
+      { r: 72, g: 166, b: 167 },   // Teal
+      { r: 147, g: 197, b: 253 },  // Light blue
+      { r: 121, g: 92, b: 178 }    // Muted purple (visited link color)
+    ]
   };
 
   // ---- Utility ----
@@ -81,7 +63,7 @@
     var maxSize = mobile ? config.particleMaxSizeMobile : config.particleMaxSize;
     this.baseSize = minSize + Math.random() * (maxSize - minSize);
     this.size = this.baseSize;
-    this.baseAlpha = isDarkTheme() ? (0.3 + Math.random() * 0.4) : (0.2 + Math.random() * 0.35);
+    this.baseAlpha = 0.2 + Math.random() * 0.35;
     this.alpha = this.baseAlpha;
     this.pulsePhase = Math.random() * Math.PI * 2;
     this.pulseSpeed = 0.005 + Math.random() * 0.01;
@@ -160,7 +142,6 @@
     this.resize();
     this.initParticles();
     this.bindEvents();
-    this.observeTheme();
     this.animate(0);
   }
 
@@ -355,29 +336,6 @@
     // Draw connections then particles (particles on top)
     this.drawConnections(timestamp);
     this.drawParticles(timestamp);
-  };
-
-  HeroAnimation.prototype.updateThemeColors = function() {
-    var newColors = isDarkTheme() ? DARK_COLORS : LIGHT_COLORS;
-    CONFIG.colors = newColors;
-    // Update existing particles with new colors
-    for (var i = 0; i < this.particles.length; i++) {
-      var colorIndex = Math.floor(Math.random() * newColors.length);
-      this.particles[i].color = newColors[colorIndex];
-    }
-  };
-
-  HeroAnimation.prototype.observeTheme = function() {
-    var self = this;
-    var observer = new MutationObserver(function(mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        if (mutations[i].attributeName === 'data-theme') {
-          self.updateThemeColors();
-          break;
-        }
-      }
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   };
 
   HeroAnimation.prototype.destroy = function() {
