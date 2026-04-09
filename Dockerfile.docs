@@ -1,0 +1,32 @@
+## Stage 1: Build static site
+FROM python:3.12-slim AS builder
+
+WORKDIR /build
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir .
+
+COPY build.py .
+COPY translations.json .
+COPY templates/ templates/
+COPY static/ static/
+COPY seed_traces.json .
+
+RUN python build.py
+
+## Stage 2: Serve docs at root with nginx
+FROM nginx:alpine
+
+# Remove default config
+RUN rm /etc/nginx/conf.d/default.conf
+
+COPY nginx-docs.conf /etc/nginx/nginx.conf.template
+
+# Copy docs as the root
+COPY --from=builder /build/_site/docs /usr/share/nginx/html
+# Copy static assets (shared CSS, JS, images)
+COPY --from=builder /build/_site/static /usr/share/nginx/html/static
+
+EXPOSE 8080
+
+CMD ["/bin/sh", "-c", "envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

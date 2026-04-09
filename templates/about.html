@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block nav_about %}active{% endblock %}
+
+{% block head %}
+<style>
+/* ==========================================================================
+   About Page — Wikipedia-style prose, no dark hero, no animations
+   Centered, readable, simple
+   ========================================================================== */
+
+/* --- Hide sidebar, center content --- */
+.ct-sidebar { display: none !important; }
+.ct-main {
+  max-width: 780px !important;
+  margin: 0 auto;
+}
+
+/* --- Title --- */
+.about-title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--light-border);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* --- Lead paragraph --- */
+.about-lead {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--light-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.about-lead strong {
+  color: var(--light-text);
+  font-weight: 600;
+}
+
+/* --- Section headings --- */
+.about-section-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 2.5rem 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--light-border);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* --- Prose content --- */
+.about-prose {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--light-text-muted);
+}
+
+.about-prose p {
+  margin-bottom: 0.85rem;
+}
+
+.about-prose a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.about-prose a:visited { color: var(--violet); }
+.about-prose a:hover { text-decoration: underline; }
+
+/* --- Numbered list for "How it works" --- */
+.about-prose ol {
+  margin: 0.75rem 0 1rem 1.5rem;
+}
+
+.about-prose ol li {
+  margin-bottom: 0.6rem;
+  line-height: 1.7;
+}
+
+.about-prose ol li strong {
+  color: var(--light-text);
+  font-weight: 600;
+}
+
+/* --- Subsection headings (h3) --- */
+.about-subsection-title {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--light-text);
+  margin: 1.5rem 0 0.4rem;
+}
+
+/* --- MCP tools inline --- */
+.about-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--light-text);
+}
+
+/* --- Stack definition list --- */
+.about-stack {
+  margin: 0.75rem 0 1rem;
+}
+
+.about-stack dt {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--light-text);
+  margin-top: 0.75rem;
+}
+
+.about-stack dd {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--light-text-muted);
+  line-height: 1.65;
+  margin: 0.15rem 0 0 1.5rem;
+}
+
+/* --- Statistics text --- */
+.about-stats-text {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--light-text-muted);
+  margin: 0.5rem 0 1rem;
+}
+
+.about-stats-text strong {
+  color: var(--light-text);
+  font-weight: 600;
+}
+
+/* --- CTA link --- */
+.about-cta {
+  margin: 2rem 0 2.5rem;
+}
+
+.about-cta a {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.about-cta a:visited { color: var(--accent); }
+.about-cta a:hover { text-decoration: underline; }
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .about-title {
+    font-size: 1.6rem;
+  }
+
+  .about-section-title {
+    font-size: 1.35rem;
+  }
+
+  .about-lead {
+    font-size: 1rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h1 class="about-title">{{ t('about.title') }}</h1>
+
+<p class="about-lead">{{ t('about.lead') }}</p>
+
+<!-- Why does this exist? -->
+<div class="about-prose">
+  <h2 class="about-section-title">{{ t('about.why_title') }}</h2>
+  <p>{{ t('about.problem_p1') }}</p>
+  <p>{{ t('about.problem_p2') }}</p>
+  <p>{{ t('about.solution_p1') }}</p>
+  <p>{{ t('about.solution_p2') }}</p>
+</div>
+
+<!-- How it works -->
+<div class="about-prose">
+  <h2 class="about-section-title">{{ t('about.how_title') }}</h2>
+  <ol>
+    <li><strong>{{ t('about.step1_title') }}.</strong> {{ t('about.step1_desc') }}</li>
+    <li><strong>{{ t('about.step2_title') }}.</strong> {{ t('about.step2_desc') }}</li>
+    <li><strong>{{ t('about.step3_title') }}.</strong> {{ t('about.step3_desc') }}</li>
+    <li><strong>{{ t('about.step4_title') }}.</strong> {{ t('about.step4_desc') }}</li>
+  </ol>
+</div>
+
+<!-- Who is it for? -->
+<div class="about-prose">
+  <h2 class="about-section-title">{{ t('about.who_title') }}</h2>
+
+  <h3 class="about-subsection-title">{{ t('about.for_agents') }}</h3>
+  <p>{{ t('about.agents_p1') }}</p>
+  <p>{{ t('about.agents_p2') }} <a href="https://github.com/commontrace">{{ t('about.agents_docs') }} &rarr;</a></p>
+
+  <h3 class="about-subsection-title">{{ t('about.for_humans') }}</h3>
+  <p>{{ t('about.humans_p1') }}</p>
+  <p>{{ t('about.humans_p2') }}</p>
+</div>
+
+<!-- The stack -->
+<div class="about-prose">
+  <h2 class="about-section-title">{{ t('about.stack_title') }}</h2>
+  <dl class="about-stack">
+    <dt>{{ t('about.stack_api') }}</dt>
+    <dd>{{ t('about.stack_api_desc') }}</dd>
+    <dt>{{ t('about.stack_mcp') }}</dt>
+    <dd>{{ t('about.stack_mcp_desc') }}</dd>
+    <dt>{{ t('about.stack_web') }}</dt>
+    <dd>{{ t('about.stack_web_desc') }}</dd>
+  </dl>
+</div>
+
+<!-- Statistics -->
+<div class="about-prose">
+  <h2 class="about-section-title">{{ t('about.stats_title') }}</h2>
+  <p class="about-stats-text">
+    <strong>{{ total_traces }}</strong> {{ t('about.stat_traces') | lower }}.
+    <strong>{{ all_tags|length }}</strong> {{ t('about.stat_categories') | lower }}.
+    {{ t('about.stats_desc') }}
+  </p>
+</div>
+
+<!-- CTA -->
+<div class="about-cta">
+  <a href="{{ url('/browse/') }}">{{ t('about.cta') }} &rarr;</a>
+</div>
+
+{% endblock %}
