@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+  <script>
+  (function() {
+    var stored = localStorage.getItem('theme');
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.setAttribute('data-theme', stored);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Actions concurrency to cancel outdated runs | CommonTrace</title>
@@ -8,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/highlight.css?v=9e7675cf">
+  <link rel="stylesheet" href="/static/highlight.css?v=ee88f1f2">
   <style>
 /* ==========================================================================
    CommonTrace Design System — Wikipedia + MDN polish
@@ -162,6 +174,96 @@
   --violet-soft: rgba(121, 92, 178, 0.1);
   --radius-xl: 8px;
   --radius-pill: 100px;
+}
+
+/* --- Dark Theme --- */
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --bg-secondary: #161b22;
+  --surface: #1c2128;
+  --surface-hover: #262c36;
+
+  --border: #30363d;
+  --border-faint: #21262d;
+
+  --text-primary: #e6edf3;
+  --text-secondary: #b1bac4;
+  --text-tertiary: #8b949e;
+  --text-quaternary: #484f58;
+
+  --link: #58a6ff;
+  --link-hover: #79c0ff;
+  --link-visited: #bc8cff;
+
+  --accent: #58a6ff;
+  --accent-soft: rgba(88, 166, 255, 0.1);
+
+  --problem-color: #f85149;
+  --problem-bg: rgba(248, 81, 73, 0.08);
+  --solution-color: #3fb950;
+  --solution-bg: rgba(63, 185, 80, 0.08);
+
+  --code-bg: #161b22;
+  --code-border: #30363d;
+  --code-block-bg: #161b22;
+
+  --gradient-brand: linear-gradient(135deg, #58a6ff 0%, #bc8cff 50%, #58a6ff 100%);
+  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(88,166,255,0.12) 0%, transparent 60%);
+
+  --accent-hover: var(--link-hover);
+  --accent-glow: rgba(88, 166, 255, 0.25);
+  --violet: var(--link-visited);
+  --violet-soft: rgba(188, 140, 255, 0.12);
+
+  --dark-bg: #04070f;
+  --dark-bg-subtle: #080d1a;
+  --dark-surface: rgba(255,255,255,0.04);
+  --dark-surface-hover: rgba(255,255,255,0.08);
+  --dark-border: #151c30;
+  --dark-text: #eef0f6;
+  --dark-text-muted: #8892a6;
+  --dark-text-dim: #525c70;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --bg: #0d1117;
+    --bg-secondary: #161b22;
+    --surface: #1c2128;
+    --surface-hover: #262c36;
+
+    --border: #30363d;
+    --border-faint: #21262d;
+
+    --text-primary: #e6edf3;
+    --text-secondary: #b1bac4;
+    --text-tertiary: #8b949e;
+    --text-quaternary: #484f58;
+
+    --link: #58a6ff;
+    --link-hover: #79c0ff;
+    --link-visited: #bc8cff;
+
+    --accent: #58a6ff;
+    --accent-soft: rgba(88, 166, 255, 0.1);
+
+    --problem-color: #f85149;
+    --problem-bg: rgba(248, 81, 73, 0.08);
+    --solution-color: #3fb950;
+    --solution-bg: rgba(63, 185, 80, 0.08);
+
+    --code-bg: #161b22;
+    --code-border: #30363d;
+    --code-block-bg: #161b22;
+
+    --gradient-brand: linear-gradient(135deg, #58a6ff 0%, #bc8cff 50%, #58a6ff 100%);
+    --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(88,166,255,0.12) 0%, transparent 60%);
+
+    --accent-hover: var(--link-hover);
+    --accent-glow: rgba(88, 166, 255, 0.25);
+    --violet: var(--link-visited);
+    --violet-soft: rgba(188, 140, 255, 0.12);
+  }
 }
 
 /* --- Reset --- */
@@ -645,6 +747,141 @@ li { margin-bottom: 0.25rem; }
 .ct-footer__links a:visited { color: var(--text-secondary); }
 .ct-footer__links a:hover { color: var(--link); }
 
+/* --- Dark Syntax Highlighting --- */
+[data-theme="dark"] .highlight,
+[data-theme="dark"] .trace-content .highlight {
+  background: #161b22 !important;
+  border-color: #30363d;
+}
+
+[data-theme="dark"] .highlight code,
+[data-theme="dark"] .trace-content .highlight code {
+  color: #e6edf3;
+}
+
+[data-theme="dark"] .highlight .c,
+[data-theme="dark"] .highlight .c1,
+[data-theme="dark"] .highlight .cm,
+[data-theme="dark"] .highlight .cs { color: #8b949e; font-style: italic; }
+[data-theme="dark"] .highlight .k,
+[data-theme="dark"] .highlight .kd,
+[data-theme="dark"] .highlight .kn,
+[data-theme="dark"] .highlight .kp,
+[data-theme="dark"] .highlight .kr { color: #ff7b72; }
+[data-theme="dark"] .highlight .s,
+[data-theme="dark"] .highlight .s1,
+[data-theme="dark"] .highlight .s2,
+[data-theme="dark"] .highlight .sa,
+[data-theme="dark"] .highlight .sb,
+[data-theme="dark"] .highlight .sc,
+[data-theme="dark"] .highlight .dl,
+[data-theme="dark"] .highlight .sd,
+[data-theme="dark"] .highlight .sh,
+[data-theme="dark"] .highlight .se { color: #a5d6ff; }
+[data-theme="dark"] .highlight .mi,
+[data-theme="dark"] .highlight .mf,
+[data-theme="dark"] .highlight .mh,
+[data-theme="dark"] .highlight .mo { color: #79c0ff; }
+[data-theme="dark"] .highlight .na { color: #d2a8ff; }
+[data-theme="dark"] .highlight .nb { color: #79c0ff; }
+[data-theme="dark"] .highlight .nc { color: #f0883e; }
+[data-theme="dark"] .highlight .nf { color: #d2a8ff; }
+[data-theme="dark"] .highlight .nn { color: #ffa657; }
+[data-theme="dark"] .highlight .o,
+[data-theme="dark"] .highlight .ow { color: #ff7b72; }
+[data-theme="dark"] .highlight .p { color: #e6edf3; }
+[data-theme="dark"] .highlight .err { color: #ffa198; }
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .highlight,
+  html:not([data-theme="light"]) .trace-content .highlight {
+    background: #161b22 !important;
+    border-color: #30363d;
+  }
+
+  html:not([data-theme="light"]) .highlight code,
+  html:not([data-theme="light"]) .trace-content .highlight code {
+    color: #e6edf3;
+  }
+
+  html:not([data-theme="light"]) .highlight .c,
+  html:not([data-theme="light"]) .highlight .c1,
+  html:not([data-theme="light"]) .highlight .cm,
+  html:not([data-theme="light"]) .highlight .cs { color: #8b949e; font-style: italic; }
+  html:not([data-theme="light"]) .highlight .k,
+  html:not([data-theme="light"]) .highlight .kd,
+  html:not([data-theme="light"]) .highlight .kn,
+  html:not([data-theme="light"]) .highlight .kp,
+  html:not([data-theme="light"]) .highlight .kr { color: #ff7b72; }
+  html:not([data-theme="light"]) .highlight .s,
+  html:not([data-theme="light"]) .highlight .s1,
+  html:not([data-theme="light"]) .highlight .s2,
+  html:not([data-theme="light"]) .highlight .sa,
+  html:not([data-theme="light"]) .highlight .sb,
+  html:not([data-theme="light"]) .highlight .sc,
+  html:not([data-theme="light"]) .highlight .dl,
+  html:not([data-theme="light"]) .highlight .sd,
+  html:not([data-theme="light"]) .highlight .sh,
+  html:not([data-theme="light"]) .highlight .se { color: #a5d6ff; }
+  html:not([data-theme="light"]) .highlight .mi,
+  html:not([data-theme="light"]) .highlight .mf,
+  html:not([data-theme="light"]) .highlight .mh,
+  html:not([data-theme="light"]) .highlight .mo { color: #79c0ff; }
+  html:not([data-theme="light"]) .highlight .na { color: #d2a8ff; }
+  html:not([data-theme="light"]) .highlight .nb { color: #79c0ff; }
+  html:not([data-theme="light"]) .highlight .nc { color: #f0883e; }
+  html:not([data-theme="light"]) .highlight .nf { color: #d2a8ff; }
+  html:not([data-theme="light"]) .highlight .nn { color: #ffa657; }
+  html:not([data-theme="light"]) .highlight .o,
+  html:not([data-theme="light"]) .highlight .ow { color: #ff7b72; }
+  html:not([data-theme="light"]) .highlight .p { color: #e6edf3; }
+  html:not([data-theme="light"]) .highlight .err { color: #ffa198; }
+}
+
+/* --- Dark: trace section label overrides --- */
+[data-theme="dark"] .trace-section-label--problem { color: #f85149; }
+[data-theme="dark"] .trace-section-label--solution { color: #3fb950; }
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .trace-section-label--problem { color: #f85149; }
+  html:not([data-theme="light"]) .trace-section-label--solution { color: #3fb950; }
+}
+
+/* --- Theme Toggle Button --- */
+.ct-nav__theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+}
+
+.ct-nav__theme-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+.ct-nav__theme-toggle .icon-sun,
+.ct-nav__theme-toggle .icon-moon { display: none; }
+
+[data-theme="dark"] .ct-nav__theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .ct-nav__theme-toggle .icon-moon { display: none; }
+html:not([data-theme="dark"]) .ct-nav__theme-toggle .icon-sun { display: none; }
+html:not([data-theme="dark"]) .ct-nav__theme-toggle .icon-moon { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .ct-nav__theme-toggle .icon-sun { display: block; }
+  html:not([data-theme="light"]) .ct-nav__theme-toggle .icon-moon { display: none; }
+}
+
 /* --- Accessibility: Reduced Motion --- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1000,7 +1237,7 @@ li { margin-bottom: 0.25rem; }
   <nav class="ct-nav" id="ct-nav">
     <div class="ct-nav__inner">
       <a href="/de/" class="ct-nav__logo">
-        <img src="/static/logo.png?v=9e7675cf" alt="CommonTrace" class="ct-nav__logo-img">
+        <img src="/static/logo.png?v=ee88f1f2" alt="CommonTrace" class="ct-nav__logo-img">
         <span class="ct-nav__logo-text">CommonTrace</span>
       </a>
 
@@ -1054,6 +1291,11 @@ li { margin-bottom: 0.25rem; }
           
         </div>
       </div>
+
+      <button class="ct-nav__theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/></svg>
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13zM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.75.75 0 0 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06zm9.193 9.193a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 1 1-1.06 1.061l-1.06-1.06a.75.75 0 0 1 0-1.061zM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8zm13 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 13 8zM2.343 13.657a.75.75 0 0 1 0-1.06l1.06-1.061a.75.75 0 1 1 1.061 1.06l-1.06 1.061a.75.75 0 0 1-1.06 0zm9.193-9.193a.75.75 0 0 1 0-1.06l1.061-1.061a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06.001z"/></svg>
+      </button>
 
       <a href="https://github.com/commontrace" target="_blank" rel="noopener" class="ct-nav__github" aria-label="GitHub">
         <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -1235,6 +1477,18 @@ li { margin-bottom: 0.25rem; }
       dropdown.classList.remove('open');
     }
   });
+
+  /* Theme toggle */
+  (function() {
+    var toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+    toggle.addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-theme');
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  })();
   </script>
 
   
