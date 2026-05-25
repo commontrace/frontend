@@ -292,6 +292,14 @@ def build():
                 dashboard_tpl.render(page_title="Dashboard | CommonTrace")
             )
 
+            # Dashboard Pro (token-gated, detailed PII view)
+            dashboard_pro_tpl = env.get_template("dashboard-pro.html")
+            dashboard_pro_dir = lang_out / "dashboard-pro"
+            dashboard_pro_dir.mkdir(parents=True, exist_ok=True)
+            (dashboard_pro_dir / "index.html").write_text(
+                dashboard_pro_tpl.render(page_title="Dashboard Pro | CommonTrace")
+            )
+
         print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors, docs, outreach")
 
     print(f"Build complete: {OUT_DIR}/")

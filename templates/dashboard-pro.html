@@ -1,0 +1,653 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+/* ==========================================================================
+   Dashboard Pro — detailed PII-revealing analytics, token-gated
+   ========================================================================== */
+
+.ct-sidebar { display: none !important; }
+.ct-main {
+  max-width: 1400px !important;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.dash-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--light-border);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dash-title .pro-badge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: #c62828;
+  padding: 3px 8px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+.dash-actions { display: flex; gap: 0.5rem; }
+
+.dash-btn {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--light-text);
+  background: var(--light-bg);
+  border: 1px solid var(--light-border);
+  padding: 0.4rem 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.dash-btn:hover { background: var(--light-border-faint); }
+.dash-btn--danger { color: #c62828; border-color: #c62828; }
+
+.dash-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--light-text-muted);
+  margin: 0 0 2rem;
+}
+
+.dash-subtitle code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.dash-section { margin: 2rem 0; }
+
+.dash-section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 0 0 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--light-border);
+  letter-spacing: -0.01em;
+}
+
+/* Token gate overlay */
+.gate {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid var(--light-border);
+  background: var(--light-border-faint);
+  border-radius: 6px;
+  font-family: var(--font-body);
+}
+
+.gate h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  margin: 0 0 0.5rem;
+  color: var(--light-text);
+}
+
+.gate p {
+  color: var(--light-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin: 0 0 1rem;
+}
+
+.gate input[type="password"] {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  background: var(--light-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+  color: var(--light-text);
+  box-sizing: border-box;
+}
+
+.gate button {
+  margin-top: 0.85rem;
+  width: 100%;
+  padding: 0.6rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.gate button:hover { opacity: 0.92; }
+
+.gate-error {
+  color: #c62828;
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+}
+
+/* Funnel */
+.funnel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+.funnel-label {
+  flex: 0 0 140px;
+  color: var(--light-text);
+  font-weight: 600;
+}
+
+.funnel-bar-bg {
+  flex: 1;
+  height: 22px;
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.funnel-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  transition: width 0.4s ease;
+}
+
+.funnel-val {
+  flex: 0 0 100px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--light-text);
+}
+
+/* Tables */
+.dash-card {
+  background: var(--light-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1.25rem;
+}
+
+.dash-card-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--light-text);
+  margin: 0 0 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dash-card-title .dash-card-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--light-text-muted);
+  font-weight: 400;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+}
+
+.dash-table th,
+.dash-table td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--light-border);
+  vertical-align: top;
+}
+
+.dash-table th {
+  color: var(--light-text);
+  font-weight: 600;
+  background: var(--light-border-faint);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+.dash-table td { color: var(--light-text-muted); }
+.dash-table td strong { color: var(--light-text); font-weight: 600; }
+
+.dash-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--light-text);
+}
+
+.dash-table td.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--light-text);
+}
+
+.dash-table tbody tr:hover { background: var(--light-border-faint); }
+
+.dash-scroll {
+  max-height: 480px;
+  overflow-y: auto;
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.7em;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  color: var(--light-text);
+  margin-right: 2px;
+}
+
+.tag--up { color: #2e7d32; border-color: #2e7d32; }
+.tag--down { color: #c62828; border-color: #c62828; }
+
+.dash-loading {
+  color: var(--light-text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.dash-error {
+  color: #c62828;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+}
+
+.dash-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--light-text-muted);
+  margin: 1rem 0;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .dash-title { font-size: 1.5rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Token gate (shown until valid token in localStorage) -->
+<div id="gate" class="gate" style="display:none">
+  <h2>Owner access</h2>
+  <p>
+    This dashboard exposes individual user data: emails, signup IPs (via country),
+    skill version per install, and per-user contribution history. Enter the admin
+    token to unlock. The token is stored in this browser's <code>localStorage</code>
+    and sent as <code>X-Admin-Token</code> to <code>api.commontrace.org/api/v1/admin/*</code>.
+  </p>
+  <input type="password" id="gate-input" placeholder="ADMIN_DASHBOARD_TOKEN" autocomplete="off" />
+  <button id="gate-submit">Unlock</button>
+  <div class="gate-error" id="gate-error" style="display:none"></div>
+</div>
+
+<!-- Dashboard body (shown after auth) -->
+<div id="dashboard" style="display:none">
+
+<h1 class="dash-title">
+  <span>CommonTrace Dashboard <span class="pro-badge">Pro</span></span>
+  <span class="dash-actions">
+    <button class="dash-btn" id="refresh-btn">Refresh</button>
+    <button class="dash-btn dash-btn--danger" id="logout-btn">Sign out</button>
+  </span>
+</h1>
+<p class="dash-subtitle">
+  Detailed traction view with PII. All requests gated by admin token. Public
+  aggregate view at <a href="/dashboard/">/dashboard/</a>.
+</p>
+
+<!-- Funnel -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Acquisition funnel</h2>
+  <div class="dash-card" id="funnel-card">
+    <div class="dash-loading">Loading…</div>
+  </div>
+</div>
+
+<!-- Recent signups -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Recent signups</h2>
+  <div class="dash-card">
+    <div class="dash-card-title">
+      Latest 100 users
+      <span class="dash-card-meta" id="users-meta">—</span>
+    </div>
+    <div class="dash-scroll">
+      <table class="dash-table" id="users-table">
+        <thead><tr>
+          <th>Created</th><th>Email</th><th>Display name</th><th>Country</th>
+          <th>Platform</th><th>Skill ver</th><th>Source</th>
+          <th>Last seen</th><th class="num">Reputation</th>
+        </tr></thead>
+        <tbody><tr><td colspan="9" class="dash-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Recent contributions + recent votes side-by-side -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Activity</h2>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-title">Recent contributions</div>
+      <div class="dash-scroll">
+        <table class="dash-table" id="traces-table">
+          <thead><tr>
+            <th>Created</th><th>Title</th><th>Contributor</th>
+            <th>Country</th><th class="num">Retr.</th><th class="num">Trust</th>
+          </tr></thead>
+          <tbody><tr><td colspan="6" class="dash-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">Recent votes</div>
+      <div class="dash-scroll">
+        <table class="dash-table" id="votes-table">
+          <thead><tr>
+            <th>Time</th><th>Voter</th><th>Vote</th><th>Trace</th>
+          </tr></thead>
+          <tbody><tr><td colspan="4" class="dash-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skill session reports -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Recent skill session reports</h2>
+  <div class="dash-card">
+    <div class="dash-card-title">
+      Last 200 trigger-stats payloads
+      <span class="dash-card-meta" id="sessions-meta">—</span>
+    </div>
+    <div class="dash-scroll">
+      <table class="dash-table" id="sessions-table">
+        <thead><tr>
+          <th>Reported</th><th>Session ID</th><th>Triggers</th>
+        </tr></thead>
+        <tbody><tr><td colspan="3" class="dash-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Daily signups timeline -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Signups — daily breakdown (30d)</h2>
+  <div class="dash-card">
+    <table class="dash-table" id="signups-table">
+      <thead><tr>
+        <th>Date</th>
+        <th class="num">Total</th>
+        <th class="num">With email</th>
+        <th class="num">With country</th>
+      </tr></thead>
+      <tbody><tr><td colspan="4" class="dash-loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<p class="dash-meta">Last refreshed: <span id="last-refreshed">—</span></p>
+
+</div>
+
+<script>
+(function() {
+  const API = 'https://api.commontrace.org/api/v1/admin';
+  const TOKEN_KEY = 'ct_admin_token';
+
+  const fmt = n => (n ?? 0).toLocaleString();
+  const esc = s => (s == null ? '' : String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;'));
+  const fmtTime = iso => iso ? new Date(iso).toISOString().replace('T', ' ').slice(0, 19) : '—';
+  const fmtDate = iso => iso ? iso.slice(0, 10) : '—';
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+  function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+  function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+  async function getJson(path) {
+    const res = await fetch(API + path, {
+      headers: { 'X-Admin-Token': getToken(), 'Accept': 'application/json' },
+    });
+    if (res.status === 401) throw new Error('Invalid admin token');
+    if (res.status === 503) throw new Error('ADMIN_DASHBOARD_TOKEN env var not set on the API');
+    if (!res.ok) throw new Error(path + ' -> HTTP ' + res.status);
+    return res.json();
+  }
+
+  async function verifyToken() {
+    try { await getJson('/health'); return true; }
+    catch (e) { return false; }
+  }
+
+  function showGate(errMsg) {
+    document.getElementById('gate').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'none';
+    const e = document.getElementById('gate-error');
+    if (errMsg) { e.textContent = errMsg; e.style.display = 'block'; }
+    else { e.style.display = 'none'; }
+    setTimeout(() => document.getElementById('gate-input').focus(), 0);
+  }
+
+  function showDashboard() {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadAll();
+  }
+
+  async function loadFunnel() {
+    try {
+      const f = await getJson('/funnel');
+      const s = f.stages;
+      const max = Math.max(s.total_users, 1);
+      const stages = [
+        ['Signed up',  s.total_users],
+        ['Installed',  s.installs],
+        ['Pinged (ever)', s.pinged],
+        ['Active 7d',  s.pinged_7d],
+        ['Contributed', s.contributed],
+        ['Voted',      s.voted],
+        ['Amended',    s.amended],
+      ];
+      const html = stages.map(([label, n]) => {
+        const pct = (n / max * 100).toFixed(1);
+        const conv = ((n / max) * 100).toFixed(1);
+        return `<div class="funnel-row">
+          <div class="funnel-label">${label}</div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:${pct}%"></div></div>
+          <div class="funnel-val"><strong>${fmt(n)}</strong> · ${conv}%</div>
+        </div>`;
+      }).join('');
+      document.getElementById('funnel-card').innerHTML = html;
+    } catch (e) {
+      document.getElementById('funnel-card').innerHTML =
+        `<div class="dash-error">${e.message}</div>`;
+    }
+  }
+
+  async function loadUsers() {
+    try {
+      const u = await getJson('/users/recent?limit=100');
+      const body = document.querySelector('#users-table tbody');
+      body.innerHTML = u.users.map(r => `<tr>
+        <td class="mono">${fmtTime(r.created_at)}</td>
+        <td>${esc(r.email) || '<em>—</em>'}</td>
+        <td>${esc(r.display_name) || '—'}</td>
+        <td>${esc(r.country_code) || '—'}</td>
+        <td>${esc(r.platform) || '—'}</td>
+        <td><span class="tag">${esc(r.skill_version) || '—'}</span></td>
+        <td>${esc(r.install_source) || '—'}</td>
+        <td class="mono">${fmtTime(r.last_seen_at)}</td>
+        <td class="num">${r.reputation_score.toFixed(2)}</td>
+      </tr>`).join('') || '<tr><td colspan="9">No users yet.</td></tr>';
+      document.getElementById('users-meta').textContent = `${u.users.length} rows`;
+    } catch (e) {
+      document.querySelector('#users-table tbody').innerHTML =
+        `<tr><td colspan="9" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadTraces() {
+    try {
+      const t = await getJson('/traces/recent?limit=50');
+      const body = document.querySelector('#traces-table tbody');
+      body.innerHTML = t.traces.map(r => `<tr>
+        <td class="mono">${fmtTime(r.created_at)}</td>
+        <td><a href="https://commontrace.org/trace/${r.id}/">${esc(r.title)}</a></td>
+        <td>${esc(r.contributor_email || r.contributor_display_name) || '<em>anon</em>'}</td>
+        <td>${esc(r.contributor_country) || '—'}</td>
+        <td class="num">${fmt(r.retrieval_count)}</td>
+        <td class="num">${r.trust_score.toFixed(2)}</td>
+      </tr>`).join('') || '<tr><td colspan="6">No traces yet.</td></tr>';
+    } catch (e) {
+      document.querySelector('#traces-table tbody').innerHTML =
+        `<tr><td colspan="6" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadVotes() {
+    try {
+      const v = await getJson('/votes/recent?limit=100');
+      const body = document.querySelector('#votes-table tbody');
+      body.innerHTML = v.votes.map(r => `<tr>
+        <td class="mono">${fmtTime(r.created_at)}</td>
+        <td>${esc(r.voter_email || r.voter_display_name) || '<em>anon</em>'}</td>
+        <td><span class="tag tag--${r.vote_type === 'up' ? 'up' : 'down'}">${esc(r.vote_type)}</span></td>
+        <td><a href="https://commontrace.org/trace/${r.trace_id}/">${esc(r.trace_title)}</a></td>
+      </tr>`).join('') || '<tr><td colspan="4">No votes yet.</td></tr>';
+    } catch (e) {
+      document.querySelector('#votes-table tbody').innerHTML =
+        `<tr><td colspan="4" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadSessions() {
+    try {
+      const s = await getJson('/sessions/recent?limit=200');
+      const body = document.querySelector('#sessions-table tbody');
+      body.innerHTML = s.sessions.map(r => {
+        const stats = r.stats || {};
+        const summary = Object.entries(stats).map(([k, v]) => {
+          const fired = (v && (v.fired ?? v.total)) || 0;
+          const consumed = (v && v.consumed) || 0;
+          return `<span class="tag">${esc(k)}: ${fired}/${consumed}</span>`;
+        }).join(' ') || '<em>—</em>';
+        return `<tr>
+          <td class="mono">${fmtTime(r.reported_at)}</td>
+          <td class="mono">${esc(r.session_id)}</td>
+          <td>${summary}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="3">No skill sessions reported yet.</td></tr>';
+      document.getElementById('sessions-meta').textContent = `${s.sessions.length} rows`;
+    } catch (e) {
+      document.querySelector('#sessions-table tbody').innerHTML =
+        `<tr><td colspan="3" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadSignups() {
+    try {
+      const s = await getJson('/signups/timeline?days=30');
+      const body = document.querySelector('#signups-table tbody');
+      body.innerHTML = s.series.slice().reverse().map(r => `<tr>
+        <td class="mono">${esc(r.date)}</td>
+        <td class="num"><strong>${fmt(r.total)}</strong></td>
+        <td class="num">${fmt(r.with_email)}</td>
+        <td class="num">${fmt(r.with_country)}</td>
+      </tr>`).join('') || '<tr><td colspan="4">No data.</td></tr>';
+    } catch (e) {
+      document.querySelector('#signups-table tbody').innerHTML =
+        `<tr><td colspan="4" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  function updateRefreshed() {
+    document.getElementById('last-refreshed').textContent = new Date().toISOString();
+  }
+
+  function loadAll() {
+    Promise.all([
+      loadFunnel(), loadUsers(), loadTraces(), loadVotes(),
+      loadSessions(), loadSignups(),
+    ]).finally(updateRefreshed);
+  }
+
+  document.getElementById('gate-submit').addEventListener('click', async () => {
+    const v = document.getElementById('gate-input').value.trim();
+    if (!v) return;
+    setToken(v);
+    if (await verifyToken()) showDashboard();
+    else { clearToken(); showGate('Invalid token. Try again.'); }
+  });
+
+  document.getElementById('gate-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('gate-submit').click();
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', loadAll);
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    clearToken();
+    showGate();
+  });
+
+  // Boot
+  (async () => {
+    if (!getToken()) { showGate(); return; }
+    if (await verifyToken()) showDashboard();
+    else { clearToken(); showGate('Stored token rejected. Re-enter.'); }
+  })();
+})();
+</script>
+{% endblock %}
