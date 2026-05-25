@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+/* ==========================================================================
+   Dashboard — owner-only analytics view
+   Hides nav/sidebar, full-width, chart-heavy. Wikipedia-tone preserved.
+   ========================================================================== */
+
+.ct-sidebar { display: none !important; }
+.ct-main {
+  max-width: 1200px !important;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.dash-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--light-border);
+  letter-spacing: -0.02em;
+}
+
+.dash-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--light-text-muted);
+  margin: 0 0 2rem;
+}
+
+.dash-subtitle code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.dash-section {
+  margin: 2rem 0;
+}
+
+.dash-section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--light-text);
+  margin: 0 0 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--light-border);
+  letter-spacing: -0.01em;
+}
+
+/* KPI grid */
+.dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.dash-kpi {
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  padding: 0.85rem 1rem;
+  border-radius: 4px;
+}
+
+.dash-kpi-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--light-text-muted);
+  margin: 0 0 0.25rem;
+}
+
+.dash-kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--light-text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.dash-kpi-delta {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--light-text-muted);
+  margin-top: 0.2rem;
+}
+
+.dash-kpi-delta strong { color: var(--light-text); }
+
+/* Two-column grid for charts */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.25rem;
+}
+
+.dash-card {
+  background: var(--light-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.dash-card-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--light-text);
+  margin: 0 0 0.75rem;
+}
+
+.dash-canvas-wrap {
+  position: relative;
+  height: 240px;
+}
+
+/* Tables */
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+}
+
+.dash-table th,
+.dash-table td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--light-border);
+}
+
+.dash-table th {
+  color: var(--light-text);
+  font-weight: 600;
+  background: var(--light-border-faint);
+}
+
+.dash-table td {
+  color: var(--light-text-muted);
+}
+
+.dash-table td strong {
+  color: var(--light-text);
+  font-weight: 600;
+}
+
+.dash-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--light-text);
+}
+
+.dash-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--light-text-muted);
+  margin: 1rem 0;
+  text-align: right;
+}
+
+.dash-loading {
+  color: var(--light-text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.dash-error {
+  color: #c62828;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+}
+
+.dash-iframe-wrap {
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--light-bg);
+  margin-top: 0.5rem;
+}
+
+.dash-iframe-wrap iframe {
+  width: 100%;
+  height: 1600px;
+  border: 0;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .dash-title { font-size: 1.5rem; }
+  .dash-canvas-wrap { height: 200px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h1 class="dash-title">CommonTrace Dashboard</h1>
+<p class="dash-subtitle">
+  Owner-only traction view. Aggregate numbers only — no individual user data is
+  surfaced on this page. Data source: <code>api.commontrace.org/api/v1/analytics</code>.
+  Page is unlisted. Bookmark the URL to find it again.
+</p>
+
+<!-- ==== KPI summary ==== -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Summary</h2>
+  <div class="dash-kpis" id="kpi-grid">
+    <div class="dash-loading">Loading summary…</div>
+  </div>
+</div>
+
+<!-- ==== Daily timeline chart ==== -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Activity — last 30 days</h2>
+  <div class="dash-card">
+    <div class="dash-card-title">Signups · Contributions · Votes · Search sessions (daily)</div>
+    <div class="dash-canvas-wrap"><canvas id="timeline-chart"></canvas></div>
+  </div>
+</div>
+
+<!-- ==== Two-column grid: top tags + top traces ==== -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Content</h2>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-title">Most-used tags</div>
+      <div class="dash-canvas-wrap"><canvas id="tags-chart"></canvas></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">Most-retrieved traces</div>
+      <table class="dash-table" id="top-traces-table">
+        <thead><tr><th>Title</th><th class="num">Retrievals</th><th class="num">Trust</th></tr></thead>
+        <tbody><tr><td colspan="3" class="dash-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==== Contributors + Triggers ==== -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Contributors &amp; Skill telemetry</h2>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-title">Top contributors</div>
+      <table class="dash-table" id="top-contributors-table">
+        <thead><tr><th>Name</th><th class="num">Traces</th><th class="num">Retrievals</th><th class="num">Reputation</th></tr></thead>
+        <tbody><tr><td colspan="4" class="dash-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">Trigger effectiveness (30d)</div>
+      <table class="dash-table" id="triggers-table">
+        <thead><tr><th>Trigger</th><th class="num">Fired</th><th class="num">Consumed</th><th class="num">Rate</th></tr></thead>
+        <tbody><tr><td colspan="4" class="dash-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==== Geo + Platforms ==== -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Acquisition</h2>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-title">Country distribution</div>
+      <div class="dash-canvas-wrap"><canvas id="geo-chart"></canvas></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">Platform &amp; skill version</div>
+      <table class="dash-table" id="platforms-table">
+        <thead><tr><th>Bucket</th><th>Name</th><th class="num">Users</th></tr></thead>
+        <tbody><tr><td colspan="3" class="dash-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==== Plausible web analytics embed ==== -->
+{% if analytics_share_url %}
+<div class="dash-section">
+  <h2 class="dash-section-title">Web traffic (Plausible)</h2>
+  <p class="dash-subtitle" style="margin-bottom:0.5rem">
+    Visits, geography, referrers, devices, top pages. Live data.
+  </p>
+  <div class="dash-iframe-wrap">
+    <iframe plausible-embed src="{{ analytics_share_url }}" loading="lazy"></iframe>
+  </div>
+  <script async src="https://plausible.io/js/embed.host.js"></script>
+</div>
+{% else %}
+<div class="dash-section">
+  <h2 class="dash-section-title">Web traffic</h2>
+  <p class="dash-subtitle">
+    Plausible not yet wired up. Set the <code>ANALYTICS_SHARE_URL</code> env var on
+    the frontend Railway service to the public share URL of your Plausible site to
+    embed it here. See the deploy notes in <code>memory/</code>.
+  </p>
+</div>
+{% endif %}
+
+<p class="dash-meta">Last refreshed: <span id="last-refreshed">—</span></p>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  const API = 'https://api.commontrace.org/api/v1/analytics';
+
+  const fmt = n => (n ?? 0).toLocaleString();
+  const pct = n => (n * 100).toFixed(1) + '%';
+
+  async function getJson(path) {
+    const res = await fetch(API + path, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(path + ' -> HTTP ' + res.status);
+    return res.json();
+  }
+
+  function kpiCard(label, value, delta) {
+    const d = delta ? `<div class="dash-kpi-delta">${delta}</div>` : '';
+    return `<div class="dash-kpi"><div class="dash-kpi-label">${label}</div>` +
+           `<div class="dash-kpi-value">${value}</div>${d}</div>`;
+  }
+
+  async function loadSummary() {
+    try {
+      const s = await getJson('/summary');
+      const grid = document.getElementById('kpi-grid');
+      grid.innerHTML = [
+        kpiCard('Users (total)', fmt(s.users.total),
+                `<strong>+${fmt(s.users.new_7d)}</strong> in last 7d`),
+        kpiCard('Users with email', fmt(s.users.with_email)),
+        kpiCard('DAU', fmt(s.users.dau),
+                `WAU <strong>${fmt(s.users.wau)}</strong> · MAU <strong>${fmt(s.users.mau)}</strong>`),
+        kpiCard('Traces (total)', fmt(s.traces.total),
+                `<strong>+${fmt(s.traces.new_7d)}</strong> in last 7d`),
+        kpiCard('Trace retrievals (cum.)', fmt(s.traces.total_retrievals)),
+        kpiCard('Search sessions (7d)', fmt(s.searches.distinct_sessions_7d),
+                `${fmt(s.searches.retrievals_7d)} retrievals`),
+        kpiCard('Votes (total)', fmt(s.votes.total),
+                `<strong>+${fmt(s.votes.new_7d)}</strong> in last 7d`),
+        kpiCard('Amendments', fmt(s.amendments.total),
+                `<strong>+${fmt(s.amendments.new_7d)}</strong> in last 7d`),
+      ].join('');
+    } catch (e) {
+      document.getElementById('kpi-grid').innerHTML =
+        `<div class="dash-error">Summary failed: ${e.message}</div>`;
+    }
+  }
+
+  async function loadTimeline() {
+    try {
+      const t = await getJson('/timeline?days=30');
+      const labels = t.series.map(p => p.date.slice(5));
+      const ctx = document.getElementById('timeline-chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Signups', data: t.series.map(p => p.signups),
+              borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.25 },
+            { label: 'Contributions', data: t.series.map(p => p.traces),
+              borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.25 },
+            { label: 'Votes', data: t.series.map(p => p.votes),
+              borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.25 },
+            { label: 'Search sessions', data: t.series.map(p => p.search_sessions),
+              borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', tension: 0.25 },
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+      });
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadTags() {
+    try {
+      const t = await getJson('/top-tags?limit=15');
+      const ctx = document.getElementById('tags-chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: t.tags.map(x => x.name),
+          datasets: [{ label: 'Traces', data: t.tags.map(x => x.trace_count),
+                       backgroundColor: '#3b82f6' }],
+        },
+        options: {
+          indexAxis: 'y', maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+      });
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadTopTraces() {
+    try {
+      const t = await getJson('/top-traces?limit=15');
+      const body = document.querySelector('#top-traces-table tbody');
+      body.innerHTML = t.traces.map(r => `<tr>
+        <td><a href="https://commontrace.org/trace/${r.id}/">${r.title}</a></td>
+        <td class="num">${fmt(r.retrieval_count)}</td>
+        <td class="num">${r.trust_score.toFixed(2)}</td>
+      </tr>`).join('') || '<tr><td colspan="3">No data</td></tr>';
+    } catch (e) {
+      document.querySelector('#top-traces-table tbody').innerHTML =
+        `<tr><td colspan="3" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadContributors() {
+    try {
+      const t = await getJson('/top-contributors?limit=15');
+      const body = document.querySelector('#top-contributors-table tbody');
+      body.innerHTML = t.contributors.map(r => `<tr>
+        <td>${r.name}</td>
+        <td class="num">${fmt(r.trace_count)}</td>
+        <td class="num">${fmt(r.total_retrievals)}</td>
+        <td class="num">${r.reputation_score.toFixed(2)}</td>
+      </tr>`).join('') || '<tr><td colspan="4">No data</td></tr>';
+    } catch (e) {
+      document.querySelector('#top-contributors-table tbody').innerHTML =
+        `<tr><td colspan="4" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadTriggers() {
+    try {
+      const t = await getJson('/triggers');
+      const body = document.querySelector('#triggers-table tbody');
+      const rows = t.triggers.map(r => `<tr>
+        <td><strong>${r.name}</strong></td>
+        <td class="num">${fmt(r.fired)}</td>
+        <td class="num">${fmt(r.consumed)}</td>
+        <td class="num">${pct(r.consumption_rate)}</td>
+      </tr>`).join('');
+      body.innerHTML = rows ||
+        `<tr><td colspan="4" class="dash-loading">No trigger reports yet (${t.sessions_reported} sessions).</td></tr>`;
+    } catch (e) {
+      document.querySelector('#triggers-table tbody').innerHTML =
+        `<tr><td colspan="4" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadGeo() {
+    try {
+      const g = await getJson('/geo');
+      const top = g.countries.slice(0, 12);
+      const ctx = document.getElementById('geo-chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: top.map(c => c.code),
+          datasets: [{ label: 'Users', data: top.map(c => c.users),
+                       backgroundColor: '#10b981' }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+      });
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadPlatforms() {
+    try {
+      const p = await getJson('/platforms');
+      const rows = [];
+      for (const x of p.platforms) rows.push(['Platform', x.name, x.users]);
+      for (const x of p.versions)  rows.push(['Skill ver', x.name, x.users]);
+      for (const x of p.sources)   rows.push(['Source', x.name, x.users]);
+      const body = document.querySelector('#platforms-table tbody');
+      body.innerHTML = rows.map(([b, n, u]) =>
+        `<tr><td>${b}</td><td><strong>${n}</strong></td><td class="num">${fmt(u)}</td></tr>`
+      ).join('') || '<tr><td colspan="3">No data</td></tr>';
+    } catch (e) {
+      document.querySelector('#platforms-table tbody').innerHTML =
+        `<tr><td colspan="3" class="dash-error">${e.message}</td></tr>`;
+    }
+  }
+
+  function updateRefreshed() {
+    document.getElementById('last-refreshed').textContent = new Date().toISOString();
+  }
+
+  Promise.all([
+    loadSummary(), loadTimeline(), loadTags(), loadTopTraces(),
+    loadContributors(), loadTriggers(), loadGeo(), loadPlatforms(),
+  ]).finally(updateRefreshed);
+})();
+</script>
+{% endblock %}

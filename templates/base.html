@@ -24,6 +24,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/highlight.css?v={{ build_version }}">
+  {% if analytics_domain and analytics_script_url %}
+  <script defer data-domain="{{ analytics_domain }}" src="{{ analytics_script_url }}"></script>
+  {% endif %}
   <style>
 /* ==========================================================================
    CommonTrace Design System — Wikipedia + MDN polish

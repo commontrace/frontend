@@ -7,6 +7,7 @@ Supports i18n: generates localized versions for each language.
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import time
@@ -194,6 +195,9 @@ def build():
         env.globals["supported_langs"] = SUPPORTED_LANGS
         env.globals["default_lang"] = DEFAULT_LANG
         env.globals["build_version"] = build_version
+        env.globals["analytics_domain"] = os.environ.get("ANALYTICS_DOMAIN", "")
+        env.globals["analytics_script_url"] = os.environ.get("ANALYTICS_SCRIPT_URL", "")
+        env.globals["analytics_share_url"] = os.environ.get("ANALYTICS_SHARE_URL", "")
 
         # Output directory: root for English, /{lang}/ for others
         lang_out = OUT_DIR if lang == DEFAULT_LANG else OUT_DIR / lang
@@ -278,6 +282,15 @@ def build():
         (outreach_dir / "index.html").write_text(
             outreach_tpl.render(page_title=f"{t('outreach.title')} | CommonTrace")
         )
+
+        # Dashboard (EN only — internal owner view, unlisted)
+        if lang == DEFAULT_LANG:
+            dashboard_tpl = env.get_template("dashboard.html")
+            dashboard_dir = lang_out / "dashboard"
+            dashboard_dir.mkdir(parents=True, exist_ok=True)
+            (dashboard_dir / "index.html").write_text(
+                dashboard_tpl.render(page_title="Dashboard | CommonTrace")
+            )
 
         print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors, docs, outreach")
 
