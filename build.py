@@ -271,7 +271,15 @@ def build():
             docs_tpl.render(page_title="Documentation - CommonTrace")
         )
 
-        print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors, docs")
+        # Generate outreach guide page
+        outreach_tpl = env.get_template("outreach-guide.html")
+        outreach_dir = lang_out / "outreach-guide"
+        outreach_dir.mkdir(parents=True, exist_ok=True)
+        (outreach_dir / "index.html").write_text(
+            outreach_tpl.render(page_title=f"{t('outreach.title')} | CommonTrace")
+        )
+
+        print(f"Generated [{lang}]: homepage, browse, {len(traces)} traces, {len(tag_index)} tags, about, sponsors, docs, outreach")
 
     print(f"Build complete: {OUT_DIR}/")
 
