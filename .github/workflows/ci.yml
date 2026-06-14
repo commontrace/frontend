@@ -24,3 +24,5 @@ jobs:
         run: python build.py
       - name: Verify output
         run: test -f _site/index.html
+
+# ci enforcement test (no-op, will be discarded)
