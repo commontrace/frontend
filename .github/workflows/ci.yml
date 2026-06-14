@@ -24,3 +24,5 @@ jobs:
         run: python build.py
       - name: Verify output
         run: test -f _site/index.html
+
+# ci+codeql probe 2 (no-op, will be discarded)
