@@ -24,3 +24,7 @@ jobs:
         run: python build.py
       - name: Verify output
         run: test -f _site/index.html
+      - name: Savings counter build-checks
+        run: python tests/test_savings_counter.py
+      - name: Savings counter formatter unit test
+        run: node tests/test_savings_counter_render.js
