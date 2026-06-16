@@ -23,7 +23,6 @@ SAVINGS_KEYS = [
     "home.savings_money",
     "home.savings_joiner",
     "home.savings_suffix",
-    "home.savings_approx",
 ]
 
 failures = []
@@ -78,8 +77,6 @@ def test_counter_markup_in_generated_html():
               f"[markup:{label}] data-joiner attr missing")
         check('data-suffix=' in html,
               f"[markup:{label}] data-suffix attr missing")
-        check('data-approx=' in html,
-              f"[markup:{label}] data-approx attr missing")
         check('savings-counter.js' in html,
               f"[markup:{label}] savings-counter.js script tag missing")
     # FR must carry the French clause, proving i18n flows into markup.

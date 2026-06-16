@@ -14,7 +14,6 @@ const ATTRS = {
   'data-money-template': '~${dollars}',
   'data-joiner': 'and',
   'data-suffix': 'of agent work',
-  'data-approx': '~',
 };
 const el = { getAttribute: (k) => (k in ATTRS ? ATTRS[k] : null) };
 
@@ -50,6 +49,13 @@ check(noMoney.indexOf(' and ') === -1, 'no joiner when money is absent');
 // 4. Garbage / missing payload -> null.
 check(formatCounterLine(null, el) === null, 'null payload -> null');
 check(formatCounterLine({}, el) === null, 'empty object -> null');
+
+// 5. Sub-hour minutes (hours rounds to 0) -> null (no "saved ~0 hours" shown).
+const lowMinutes = formatCounterLine(
+  { total_minutes_saved: 20, total_tokens_saved: 50000, total_usd_saved: 0.01, event_count: 5 },
+  el
+);
+check(lowMinutes === null, 'low-minutes payload (20 min → 0 hours) should return null');
 
 if (failures.length) {
   console.log('FAIL');

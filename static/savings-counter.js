@@ -27,6 +27,7 @@
     var suffix = el.getAttribute('data-suffix') || 'of agent work';
 
     var hours = Math.round(minutes / 60);
+    if (hours <= 0) return null;
     var hoursStr = hours.toLocaleString();
     var hoursClause = hoursTpl.replace('{hours}', '<span class="savings-counter__num">' + hoursStr + '</span>');
 
