@@ -363,13 +363,13 @@
 <!-- Problem section -->
 <section id="problem">
   <div class="trace-section-label trace-section-label--problem">{{ t('trace.problem') }}</div>
-  <div class="trace-content">{{ trace.context_html }}</div>
+  <div class="trace-content">{{ trace.context_html|safe }}</div>
 </section>
 
 <!-- Solution section -->
 <section id="solution">
   <div class="trace-section-label trace-section-label--solution">{{ t('trace.solution') }}</div>
-  <div class="trace-content">{{ trace.solution_html }}</div>
+  <div class="trace-content">{{ trace.solution_html|safe }}</div>
 </section>
 
 <!-- Related traces -->
