@@ -430,6 +430,35 @@
     -webkit-text-fill-color: var(--text-primary) !important;
   }
 }
+
+/* ---- Global savings counter (hidden until data arrives) ---- */
+.savings-counter {
+  margin-top: 1.25rem;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  line-height: 1.5;
+}
+.savings-counter[hidden] {
+  display: none;
+}
+.savings-counter__eyebrow {
+  display: block;
+  font-family: var(--font-heading, 'Roboto Slab', serif);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary, #72777d);
+  margin-bottom: 0.25rem;
+}
+.savings-counter__line {
+  font-size: 0.95rem;
+  color: var(--text-secondary, #54595d);
+}
+.savings-counter__num {
+  font-weight: 700;
+  color: var(--accent, #3366cc);
+  font-variant-numeric: tabular-nums;
+}
 </style>
 {% endblock %}
 
@@ -459,6 +488,19 @@
 
       <div class="hero__stats">
         {{ total_traces }} traces &middot; {{ all_tags|length }} categories &middot; {{ top_languages|length }}+ languages
+      </div>
+
+      <div
+        class="savings-counter"
+        id="savings-counter"
+        hidden
+        data-eyebrow="{{ t('home.savings_eyebrow') }}"
+        data-hours-template="{{ t('home.savings_hours') }}"
+        data-money-template="{{ t('home.savings_money') }}"
+        data-joiner="{{ t('home.savings_joiner') }}"
+        data-suffix="{{ t('home.savings_suffix') }}">
+        <span class="savings-counter__eyebrow">{{ t('home.savings_eyebrow') }}</span>
+        <span class="savings-counter__line" id="savings-counter-line"></span>
       </div>
     </div>
   </section>
@@ -595,4 +637,5 @@
 
 })();
 </script>
+<script src="/static/savings-counter.js?v={{ build_version }}"></script>
 {% endblock %}
