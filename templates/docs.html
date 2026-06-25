@@ -506,8 +506,22 @@
     padding: 1rem 0;
   }
 
+  /* min-width:0 lets the grid item shrink below its content's intrinsic
+     width — without it a single wide code/table child forces the whole
+     column (and the page) wider than the viewport. */
   .docs-content {
+    min-width: 0;
+    max-width: 100%;
     padding: 1.5rem 1.25rem 3rem;
+  }
+
+  .docs-prose { min-width: 0; }
+
+  /* Wide tables scroll within their own block instead of widening the page. */
+  .docs-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
   .docs-cards {
