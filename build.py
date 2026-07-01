@@ -169,6 +169,12 @@ def build():
         if f.is_file():
             shutil.copy(f, static_out / f.name)
 
+    # Also expose favicon at the site root — browsers auto-request /favicon.ico
+    # (for tabs, bookmarks, history) regardless of the <link> tags.
+    favicon = STATIC_DIR / "favicon.ico"
+    if favicon.is_file():
+        shutil.copy(favicon, OUT_DIR / "favicon.ico")
+
     # Determine which languages to build
     langs_to_build = [lang for lang in SUPPORTED_LANGS if lang in translations]
     if DEFAULT_LANG not in langs_to_build:
