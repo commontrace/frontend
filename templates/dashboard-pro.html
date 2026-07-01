@@ -364,13 +364,8 @@
 <!-- Token gate (shown until valid token in localStorage) -->
 <div id="gate" class="gate" style="display:none">
   <h2>Owner access</h2>
-  <p>
-    This dashboard exposes individual user data: emails, signup IPs (via country),
-    skill version per install, and per-user contribution history. Enter the admin
-    token to unlock. The token is stored in this browser's <code>localStorage</code>
-    and sent as <code>X-Admin-Token</code> to <code>api.commontrace.org/api/v1/admin/*</code>.
-  </p>
-  <input type="password" id="gate-input" placeholder="ADMIN_DASHBOARD_TOKEN" autocomplete="off" />
+  <p>Enter access token.</p>
+  <input type="password" id="gate-input" placeholder="Access token" autocomplete="off" />
   <button id="gate-submit">Unlock</button>
   <div class="gate-error" id="gate-error" style="display:none"></div>
 </div>
@@ -536,9 +531,9 @@
     const res = await fetch(base + path, {
       headers: { 'X-Admin-Token': getToken(), 'Accept': 'application/json' },
     });
-    if (res.status === 401) throw new Error('Invalid admin token');
-    if (res.status === 503) throw new Error('ADMIN_DASHBOARD_TOKEN env var not set on the API');
-    if (!res.ok) throw new Error(path + ' -> HTTP ' + res.status);
+    if (res.status === 401) throw new Error('Access denied.');
+    if (res.status === 503) throw new Error('Dashboard unavailable.');
+    if (!res.ok) throw new Error('Request failed (' + res.status + ').');
     return res.json();
   }
   // Admin router (/admin/*) and the now-private analytics router
