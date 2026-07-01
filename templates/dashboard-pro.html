@@ -527,9 +527,19 @@
   function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
   function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
+  // The owner token may be any length and contain non-ASCII characters, which
+  // are illegal in an HTTP header value — fetch() throws before it sends. Send
+  // the SHA-256 hex digest instead (64 ASCII chars, header-safe). The backend
+  // accepts either the raw token or this digest. crypto.subtle needs a secure
+  // context, which the site is (HTTPS).
+  async function tokenAuthValue() {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(getToken()));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   async function getFrom(base, path) {
     const res = await fetch(base + path, {
-      headers: { 'X-Admin-Token': getToken(), 'Accept': 'application/json' },
+      headers: { 'X-Admin-Token': await tokenAuthValue(), 'Accept': 'application/json' },
     });
     if (res.status === 401) throw new Error('Access denied.');
     if (res.status === 503) throw new Error('Dashboard unavailable.');
