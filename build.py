@@ -283,16 +283,9 @@ def build():
             outreach_tpl.render(page_title=f"{t('outreach.title')} | CommonTrace")
         )
 
-        # Dashboard (EN only — internal owner view, unlisted)
+        # Dashboard (EN only — the single private, token-gated owner view).
+        # There is deliberately no public analytics page.
         if lang == DEFAULT_LANG:
-            dashboard_tpl = env.get_template("dashboard.html")
-            dashboard_dir = lang_out / "dashboard"
-            dashboard_dir.mkdir(parents=True, exist_ok=True)
-            (dashboard_dir / "index.html").write_text(
-                dashboard_tpl.render(page_title="Dashboard | CommonTrace")
-            )
-
-            # Dashboard Pro (token-gated, detailed PII view)
             dashboard_pro_tpl = env.get_template("dashboard-pro.html")
             dashboard_pro_dir = lang_out / "dashboard-pro"
             dashboard_pro_dir.mkdir(parents=True, exist_ok=True)

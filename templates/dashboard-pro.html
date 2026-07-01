@@ -89,6 +89,54 @@
   letter-spacing: -0.01em;
 }
 
+/* KPI summary grid */
+.dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.85rem;
+}
+
+.dash-kpi {
+  background: var(--light-border-faint);
+  border: 1px solid var(--light-border);
+  padding: 0.85rem 1rem;
+  border-radius: 4px;
+}
+
+.dash-kpi-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--light-text-muted);
+  margin: 0 0 0.25rem;
+}
+
+.dash-kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--light-text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.dash-kpi-delta {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--light-text-muted);
+  margin-top: 0.2rem;
+}
+
+.dash-kpi-delta strong { color: var(--light-text); }
+
+/* Chart canvas */
+.dash-canvas-wrap {
+  position: relative;
+  height: 260px;
+}
+
 /* Token gate overlay */
 .gate {
   max-width: 480px;
@@ -338,9 +386,35 @@
   </span>
 </h1>
 <p class="dash-subtitle">
-  Detailed traction view with PII. All requests gated by admin token. Public
-  aggregate view at <a href="/dashboard/">/dashboard/</a>.
+  The single private dashboard. Every number here — aggregate and per-user — is
+  gated by the admin token. No public analytics page exists.
 </p>
+
+<!-- Summary KPIs -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Summary</h2>
+  <div class="dash-kpis" id="kpi-grid">
+    <div class="dash-loading">Loading summary…</div>
+  </div>
+</div>
+
+<!-- User growth over time -->
+<div class="dash-section">
+  <h2 class="dash-section-title">User growth — last 30 days</h2>
+  <div class="dash-card">
+    <div class="dash-card-title">Total users (cumulative) · new signups per day</div>
+    <div class="dash-canvas-wrap"><canvas id="growth-chart"></canvas></div>
+  </div>
+</div>
+
+<!-- Geographic distribution -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Where users are</h2>
+  <div class="dash-card">
+    <div class="dash-card-title">Country distribution (top 12, from signup IP)</div>
+    <div class="dash-canvas-wrap"><canvas id="geo-chart"></canvas></div>
+  </div>
+</div>
 
 <!-- Funnel -->
 <div class="dash-section">
@@ -440,9 +514,11 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
 <script>
 (function() {
   const API = 'https://api.commontrace.org/api/v1/admin';
+  const ANALYTICS = 'https://api.commontrace.org/api/v1/analytics';
   const TOKEN_KEY = 'ct_admin_token';
 
   const fmt = n => (n ?? 0).toLocaleString();
@@ -456,14 +532,123 @@
   function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
   function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
-  async function getJson(path) {
-    const res = await fetch(API + path, {
+  async function getFrom(base, path) {
+    const res = await fetch(base + path, {
       headers: { 'X-Admin-Token': getToken(), 'Accept': 'application/json' },
     });
     if (res.status === 401) throw new Error('Invalid admin token');
     if (res.status === 503) throw new Error('ADMIN_DASHBOARD_TOKEN env var not set on the API');
     if (!res.ok) throw new Error(path + ' -> HTTP ' + res.status);
     return res.json();
+  }
+  // Admin router (/admin/*) and the now-private analytics router
+  // (/analytics/*) share the same owner token.
+  async function getJson(path) { return getFrom(API, path); }
+  async function getAnalytics(path) { return getFrom(ANALYTICS, path); }
+
+  // Chart instances — destroyed and rebuilt on each refresh.
+  let growthChart = null, geoChart = null;
+
+  function kpiCard(label, value, delta) {
+    const d = delta ? `<div class="dash-kpi-delta">${delta}</div>` : '';
+    return `<div class="dash-kpi"><div class="dash-kpi-label">${label}</div>` +
+           `<div class="dash-kpi-value">${value}</div>${d}</div>`;
+  }
+
+  async function loadSummary() {
+    try {
+      const s = await getAnalytics('/summary');
+      document.getElementById('kpi-grid').innerHTML = [
+        kpiCard('Users (total)', fmt(s.users.total),
+                `<strong>+${fmt(s.users.new_7d)}</strong> in last 7d`),
+        kpiCard('Users with email', fmt(s.users.with_email)),
+        kpiCard('DAU', fmt(s.users.dau),
+                `WAU <strong>${fmt(s.users.wau)}</strong> · MAU <strong>${fmt(s.users.mau)}</strong>`),
+        kpiCard('Traces (total)', fmt(s.traces.total),
+                `<strong>+${fmt(s.traces.new_7d)}</strong> in last 7d`),
+        kpiCard('Trace retrievals (cum.)', fmt(s.traces.total_retrievals)),
+        kpiCard('Search sessions (7d)', fmt(s.searches.distinct_sessions_7d),
+                `${fmt(s.searches.retrievals_7d)} retrievals`),
+        kpiCard('Votes (total)', fmt(s.votes.total),
+                `<strong>+${fmt(s.votes.new_7d)}</strong> in last 7d`),
+        kpiCard('Amendments', fmt(s.amendments.total),
+                `<strong>+${fmt(s.amendments.new_7d)}</strong> in last 7d`),
+      ].join('');
+      return s;
+    } catch (e) {
+      document.getElementById('kpi-grid').innerHTML =
+        `<div class="dash-error">Summary failed: ${e.message}</div>`;
+      return null;
+    }
+  }
+
+  async function loadGrowth(summary) {
+    try {
+      const t = await getAnalytics('/timeline?days=30');
+      const series = t.series || [];
+      const labels = series.map(p => p.date.slice(5));
+      const signups = series.map(p => p.signups);
+      // Anchor a cumulative total-users curve to the current grand total, so
+      // the line reads as "how the user base grew", not just per-day rate.
+      let cumulative = null;
+      if (summary && summary.users && typeof summary.users.total === 'number') {
+        const windowSum = signups.reduce((a, b) => a + b, 0);
+        let running = Math.max(summary.users.total - windowSum, 0);
+        cumulative = signups.map(n => (running += n));
+      }
+      const datasets = [];
+      if (cumulative) {
+        datasets.push({
+          type: 'line', label: 'Total users', data: cumulative,
+          borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)',
+          tension: 0.25, fill: true, yAxisID: 'y', order: 0,
+        });
+      }
+      datasets.push({
+        type: 'bar', label: 'New signups / day', data: signups,
+        backgroundColor: 'rgba(16,185,129,0.55)',
+        yAxisID: cumulative ? 'y1' : 'y', order: 1,
+      });
+      if (growthChart) growthChart.destroy();
+      const ctx = document.getElementById('growth-chart').getContext('2d');
+      growthChart = new Chart(ctx, {
+        data: { labels, datasets },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } },
+          scales: {
+            y: { beginAtZero: true, position: 'left', ticks: { precision: 0 },
+                 title: { display: !!cumulative, text: 'Total users' } },
+            ...(cumulative ? { y1: {
+                 beginAtZero: true, position: 'right', ticks: { precision: 0 },
+                 grid: { drawOnChartArea: false },
+                 title: { display: true, text: 'New / day' } } } : {}),
+          },
+        },
+      });
+    } catch (e) { console.error('growth', e); }
+  }
+
+  async function loadGeo() {
+    try {
+      const g = await getAnalytics('/geo');
+      const top = (g.countries || []).slice(0, 12);
+      if (geoChart) geoChart.destroy();
+      const ctx = document.getElementById('geo-chart').getContext('2d');
+      geoChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: top.map(c => c.code),
+          datasets: [{ label: 'Users', data: top.map(c => c.users),
+                       backgroundColor: '#10b981' }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+      });
+    } catch (e) { console.error('geo', e); }
   }
 
   async function verifyToken() {
@@ -617,7 +802,10 @@
   }
 
   function loadAll() {
-    Promise.all([
+    const summaryP = loadSummary();
+    Promise.allSettled([
+      summaryP.then(s => loadGrowth(s)),
+      loadGeo(),
       loadFunnel(), loadUsers(), loadTraces(), loadVotes(),
       loadSessions(), loadSignups(),
     ]).finally(updateRefreshed);
