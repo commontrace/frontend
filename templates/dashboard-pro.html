@@ -393,6 +393,88 @@
   </div>
 </div>
 
+<!-- Knowledge health (self-maintenance signals) -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Knowledge health</h2>
+  <p class="dash-subtitle" style="margin-bottom:1rem">
+    Self-maintenance signals for the knowledge base — trust, staleness,
+    conflicts, and duplicates. Conflict and duplicate detection runs on demand
+    at every scale, so the base is curated from trace #1, not trace #1,000.
+  </p>
+  <div class="dash-kpis" id="kh-kpi-grid">
+    <div class="dash-loading">Loading knowledge health…</div>
+  </div>
+
+  <div class="dash-grid" style="margin-top:1.25rem">
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Memory temperature
+        <span class="dash-card-meta">activity-based staleness</span>
+      </div>
+      <div id="kh-temperature"><div class="dash-loading">Loading…</div></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Trust distribution
+        <span class="dash-card-meta" id="kh-trust-meta">—</span>
+      </div>
+      <div id="kh-trust"><div class="dash-loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="dash-section" style="margin-top:1.25rem">
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Conflicts — same problem, divergent fix
+        <span class="dash-card-meta" id="kh-conflicts-meta">—</span>
+      </div>
+      <div class="dash-scroll">
+        <table class="dash-table" id="kh-conflicts-table">
+          <thead><tr>
+            <th>Trace A</th><th class="num">Trust A</th>
+            <th>Trace B</th><th class="num">Trust B</th>
+            <th class="num">Problem sim</th><th class="num">Solution sim</th>
+          </tr></thead>
+          <tbody><tr><td colspan="6" class="dash-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-grid" style="margin-top:1.25rem">
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Duplicate clusters
+        <span class="dash-card-meta" id="kh-dupes-meta">—</span>
+      </div>
+      <div class="dash-scroll">
+        <table class="dash-table" id="kh-dupes-table">
+          <thead><tr>
+            <th class="num">Size</th><th class="num">Max sim</th><th>Traces</th>
+          </tr></thead>
+          <tbody><tr><td colspan="3" class="dash-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Stale / at-risk traces
+        <span class="dash-card-meta" id="kh-stale-meta">—</span>
+      </div>
+      <div class="dash-scroll">
+        <table class="dash-table" id="kh-stale-table">
+          <thead><tr>
+            <th>Title</th><th>Reason</th>
+          </tr></thead>
+          <tbody><tr><td colspan="2" class="dash-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <p class="dash-meta" id="kh-consolidation">—</p>
+</div>
+
 <!-- User growth over time -->
 <div class="dash-section">
   <h2 class="dash-section-title">User growth — last 30 days</h2>
@@ -802,6 +884,94 @@
     }
   }
 
+  const pct = x => (x * 100).toFixed(1) + '%';
+  const scoreColor = s => s >= 80 ? '#2e7d32' : s >= 60 ? '#f59e0b' : '#c62828';
+
+  async function loadKnowledgeHealth() {
+    try {
+      const h = await getAnalytics('/knowledge-health');
+      const ew = h.early_warning || {};
+      const conflicts = ew.conflicts || [];
+      const dupes = ew.duplicate_clusters || [];
+      const dupeTraces = dupes.reduce((a, c) => a + c.size, 0);
+      const tr = h.trust || {};
+
+      // KPIs
+      const scoreHtml = `<span style="color:${scoreColor(h.health_score)}">${h.health_score}</span>` +
+        `<span style="font-size:1rem;color:var(--light-text-muted)"> / 100</span>`;
+      document.getElementById('kh-kpi-grid').innerHTML = [
+        kpiCard('Health score', scoreHtml),
+        kpiCard('Traces analysed', fmt(h.total_traces)),
+        kpiCard('Avg trust', (tr.avg ?? 0).toFixed(2),
+                `min <strong>${(tr.min ?? 0).toFixed(2)}</strong> · max <strong>${(tr.max ?? 0).toFixed(2)}</strong>`),
+        kpiCard('Flagged', fmt(tr.flagged), `${fmt(tr.distrusted)} distrusted`),
+        kpiCard('Conflicts', fmt(conflicts.length), 'same problem · divergent fix'),
+        kpiCard('Duplicate clusters', fmt(dupes.length), `${fmt(dupeTraces)} traces`),
+        kpiCard('Stale / at-risk', fmt(h.stale.count), `${fmt(h.stale.stored)} marked stale`),
+      ].join('');
+
+      // Memory temperature bars
+      const temp = h.temperature || {};
+      const tempMax = Math.max(1, ...Object.values(temp));
+      document.getElementById('kh-temperature').innerHTML =
+        ['HOT', 'WARM', 'COOL', 'COLD', 'FROZEN', 'UNCLASSIFIED']
+          .filter(t => t in temp)
+          .map(t => {
+            const n = temp[t] || 0;
+            return `<div class="funnel-row">
+              <div class="funnel-label">${t}</div>
+              <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:${(n / tempMax * 100).toFixed(1)}%"></div></div>
+              <div class="funnel-val"><strong>${fmt(n)}</strong></div>
+            </div>`;
+          }).join('') || '<div class="dash-loading">No temperature data.</div>';
+
+      // Trust distribution
+      document.getElementById('kh-trust-meta').textContent = `avg ${(tr.avg ?? 0).toFixed(2)}`;
+      document.getElementById('kh-trust').innerHTML = `
+        <table class="dash-table"><tbody>
+          <tr><td>Trusted (score &gt; 0)</td><td class="num"><strong>${fmt(tr.trusted)}</strong></td></tr>
+          <tr><td>Distrusted (score &lt; 0)</td><td class="num">${fmt(tr.distrusted)}</td></tr>
+          <tr><td>Flagged</td><td class="num">${fmt(tr.flagged)}</td></tr>
+          <tr><td>Range</td><td class="num">${(tr.min ?? 0).toFixed(2)} … ${(tr.max ?? 0).toFixed(2)}</td></tr>
+        </tbody></table>`;
+
+      // Conflicts
+      document.querySelector('#kh-conflicts-table tbody').innerHTML = conflicts.map(c => `<tr>
+        <td><a href="https://commontrace.org/trace/${c.a.id}/">${esc(c.a.title)}</a></td>
+        <td class="num">${c.a.trust.toFixed(2)}</td>
+        <td><a href="https://commontrace.org/trace/${c.b.id}/">${esc(c.b.title)}</a></td>
+        <td class="num">${c.b.trust.toFixed(2)}</td>
+        <td class="num">${pct(c.problem_similarity)}</td>
+        <td class="num">${pct(c.solution_similarity)}</td>
+      </tr>`).join('') || '<tr><td colspan="6">No conflicts detected. ✓</td></tr>';
+      document.getElementById('kh-conflicts-meta').textContent = `${conflicts.length} pairs`;
+
+      // Duplicate clusters
+      document.querySelector('#kh-dupes-table tbody').innerHTML = dupes.map(c => `<tr>
+        <td class="num">${c.size}</td>
+        <td class="num">${pct(c.max_similarity)}</td>
+        <td>${c.traces.map(t => `<a href="https://commontrace.org/trace/${t.id}/">${esc(t.title)}</a>`).join('<br>')}</td>
+      </tr>`).join('') || '<tr><td colspan="3">No duplicates detected. ✓</td></tr>';
+      document.getElementById('kh-dupes-meta').textContent = `${dupes.length} clusters`;
+
+      // Stale / at-risk
+      document.querySelector('#kh-stale-table tbody').innerHTML = (h.stale.traces || []).map(t => `<tr>
+        <td><a href="https://commontrace.org/trace/${t.id}/">${esc(t.title)}</a></td>
+        <td>${esc(t.reason)}</td>
+      </tr>`).join('') || '<tr><td colspan="2">Nothing stale. ✓</td></tr>';
+      document.getElementById('kh-stale-meta').textContent = `${h.stale.count} flagged`;
+
+      // Last sleep cycle
+      const lc = h.last_consolidation;
+      document.getElementById('kh-consolidation').textContent = lc
+        ? `Last sleep cycle: ${fmtTime(lc.completed_at || lc.started_at)} · ${lc.status}`
+        : 'No sleep cycle has run yet — the early-warning pass computed these live.';
+    } catch (e) {
+      document.getElementById('kh-kpi-grid').innerHTML =
+        `<div class="dash-error">Knowledge health failed: ${e.message}</div>`;
+    }
+  }
+
   function updateRefreshed() {
     document.getElementById('last-refreshed').textContent = new Date().toISOString();
   }
@@ -810,7 +980,7 @@
     const summaryP = loadSummary();
     Promise.allSettled([
       summaryP.then(s => loadGrowth(s)),
-      loadGeo(),
+      loadGeo(), loadKnowledgeHealth(),
       loadFunnel(), loadUsers(), loadTraces(), loadVotes(),
       loadSessions(), loadSignups(),
     ]).finally(updateRefreshed);
