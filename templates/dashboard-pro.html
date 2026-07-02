@@ -434,8 +434,9 @@
             <th>Trace A</th><th class="num">Trust A</th>
             <th>Trace B</th><th class="num">Trust B</th>
             <th class="num">Problem sim</th><th class="num">Solution sim</th>
+            <th>Divergence</th>
           </tr></thead>
-          <tbody><tr><td colspan="6" class="dash-loading">Loading…</td></tr></tbody>
+          <tbody><tr><td colspan="7" class="dash-loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -943,14 +944,15 @@
         <td class="num">${c.b.trust.toFixed(2)}</td>
         <td class="num">${pct(c.problem_similarity)}</td>
         <td class="num">${pct(c.solution_similarity)}</td>
-      </tr>`).join('') || '<tr><td colspan="6">No conflicts detected. ✓</td></tr>';
+        <td style="color:var(--muted,#6b7280)">${esc(c.divergence || '—')}</td>
+      </tr>`).join('') || '<tr><td colspan="7">No conflicts detected. ✓</td></tr>';
       document.getElementById('kh-conflicts-meta').textContent = `${conflicts.length} pairs`;
 
       // Duplicate clusters
       document.querySelector('#kh-dupes-table tbody').innerHTML = dupes.map(c => `<tr>
         <td class="num">${c.size}</td>
         <td class="num">${pct(c.max_similarity)}</td>
-        <td>${c.traces.map(t => `<a href="https://commontrace.org/trace/${t.id}/">${esc(t.title)}</a>`).join('<br>')}</td>
+        <td>${c.traces.map(t => `<a href="https://commontrace.org/trace/${t.id}/">${esc(t.title)}</a>${t.canonical ? ' <span style="font-size:.72em;font-weight:600;color:#2e7d32" title="most complete — suggested keeper">★ keeper</span>' : ''}`).join('<br>')}</td>
       </tr>`).join('') || '<tr><td colspan="3">No duplicates detected. ✓</td></tr>';
       document.getElementById('kh-dupes-meta').textContent = `${dupes.length} clusters`;
 
